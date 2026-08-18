@@ -24,6 +24,8 @@ let selectedDate = dateKey(new Date());
 let dinnerChoice = "unknown";
 let lunchChoice = "unknown";
 let bulkSelected = new Set();
+let editingEventId = null;
+let editingMemberId = null;
 
 function loadState(){
   try{
@@ -183,8 +185,13 @@ function renderMembers(){
   host.innerHTML=state.members.map(m=>`
     <div class="member-row">
       <div class="member-badge"><span class="member-dot" style="background:${m.color}"></span><span>${esc(m.name)}</span></div>
-      <div class="member-meta">${m.living==="home"?"🏠 同居":"🚗 別居"}　${m.dinner?"🍚":""}${m.lunch?"🍱":""}</div>
+      <div class="member-actions">
+        <div class="member-meta">${m.living==="home"?"🏠 同居":"🚗 別居"}　${m.dinner?"🍚":""}${m.lunch?"🍱":""}</div>
+        <button type="button" class="member-edit-btn" data-member-edit="${m.id}">編集</button>
+      </div>
     </div>`).join("");
+
+  host.querySelectorAll("[data-member-edit]").forEach(b=>b.onclick=()=>openMemberEditor(b.dataset.memberEdit));
 }
 function populateMemberSelects(){
   const opts=state.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
@@ -195,14 +202,17 @@ function populateGroupSelect(){
 }
 function openDay(key){
   selectedDate=key;
+  editingEventId=null;
   const d=parseKey(key);
   document.getElementById("dayDialogTitle").textContent=`${d.getMonth()+1}月${d.getDate()}日`;
   document.getElementById("eventTitle").value="";
   document.getElementById("eventTime").value="";
   document.getElementById("eventPlace").value="";
   document.getElementById("eventMemo").value="";
-  dinnerChoice="unknown"; lunchChoice="unknown";
-  updateSegments();
+  document.getElementById("eventCategory").value="仕事";
+  document.getElementById("saveEventBtn").textContent="保存";
+  const memberId=document.getElementById("eventMember").value || state.members[0]?.id;
+  loadLifeChoices(memberId);
   renderExisting();
   document.getElementById("dayDialog").showModal();
 }
@@ -214,32 +224,74 @@ function renderExisting(){
     const names=e.memberIds?.length ? e.memberIds.map(id=>memberById(id)?.name).filter(Boolean).join("・") : memberById(e.memberId)?.name;
     return `<div class="existing-item">
       <div class="existing-copy"><strong>${esc(names||"")}｜${esc(e.title||e.category)}</strong>${esc(e.time||"")}</div>
-      <button type="button" class="delete-btn" data-delete="${e.id}">削除</button>
+      <div class="existing-actions">
+        <button type="button" class="edit-btn" data-edit="${e.id}">編集</button>
+        <button type="button" class="delete-btn" data-delete="${e.id}">削除</button>
+      </div>
     </div>`;
   }).join("");
+
+  host.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>startEditEvent(b.dataset.edit));
+
   host.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
     state.events=state.events.filter(e=>e.id!==b.dataset.delete);
+    if(editingEventId===b.dataset.delete) editingEventId=null;
     saveState(); renderExisting(); renderAll();
   });
 }
+
+function loadLifeChoices(memberId){
+  const life=lifeFor(selectedDate, memberId);
+  dinnerChoice=life.dinner || "unknown";
+  lunchChoice=life.lunch || "unknown";
+  updateSegments();
+}
+
+function startEditEvent(id){
+  const e=state.events.find(x=>x.id===id);
+  if(!e) return;
+  editingEventId=id;
+  const memberId=e.memberId || e.memberIds?.[0] || state.members[0]?.id;
+  if(memberId) document.getElementById("eventMember").value=memberId;
+  document.getElementById("eventCategory").value=e.category || "その他";
+  document.getElementById("eventTitle").value=e.title || "";
+  document.getElementById("eventTime").value=e.time || "";
+  document.getElementById("eventPlace").value=e.place || "";
+  document.getElementById("eventMemo").value=e.memo || "";
+  document.getElementById("saveEventBtn").textContent="変更を保存";
+  loadLifeChoices(memberId);
+}
+
 function updateSegments(){
   document.querySelectorAll("#dinnerSegments button").forEach(b=>b.classList.toggle("active",b.dataset.value===dinnerChoice));
   document.querySelectorAll("#lunchSegments button").forEach(b=>b.classList.toggle("active",b.dataset.value===lunchChoice));
 }
 document.querySelectorAll("#dinnerSegments button").forEach(b=>b.onclick=()=>{dinnerChoice=b.dataset.value;updateSegments();});
 document.querySelectorAll("#lunchSegments button").forEach(b=>b.onclick=()=>{lunchChoice=b.dataset.value;updateSegments();});
+document.getElementById("eventMember").addEventListener("change",e=>loadLifeChoices(e.target.value));
 
 document.getElementById("saveEventBtn").onclick=()=>{
   const memberId=document.getElementById("eventMember").value;
   const category=document.getElementById("eventCategory").value;
   const title=document.getElementById("eventTitle").value.trim() || category;
-  const ev={
-    id:crypto.randomUUID(), date:selectedDate, memberId, category, title,
+
+  const payload={
+    date:selectedDate, memberId, category, title,
     time:document.getElementById("eventTime").value.trim(),
     place:document.getElementById("eventPlace").value.trim(),
     memo:document.getElementById("eventMemo").value.trim()
   };
-  state.events.push(ev);
+
+  if(editingEventId){
+    const i=state.events.findIndex(e=>e.id===editingEventId);
+    if(i>=0){
+      // 音楽専用項目など、既存の追加情報は残す
+      state.events[i]={...state.events[i], ...payload};
+    }
+  }else{
+    state.events.push({id:crypto.randomUUID(), ...payload});
+  }
+
   state.life[selectedDate] ??= {};
   state.life[selectedDate][memberId]={dinner:dinnerChoice,lunch:lunchChoice};
 
@@ -247,7 +299,11 @@ document.getElementById("saveEventBtn").onclick=()=>{
     const m=memberById(memberId);
     if(m?.dinner) state.life[selectedDate][memberId].dinner="no";
   }
-  saveState(); document.getElementById("dayDialog").close(); renderAll();
+
+  editingEventId=null;
+  saveState();
+  document.getElementById("dayDialog").close();
+  renderAll();
 };
 
 function openBulk(){
@@ -303,18 +359,56 @@ document.getElementById("saveMusicBtn").onclick=()=>{
   saveState(); document.getElementById("musicDialog").close(); renderAll();
 };
 
-document.getElementById("addMemberBtn").onclick=()=>document.getElementById("memberDialog").showModal();
+function openMemberEditor(id=null){
+  editingMemberId=id;
+  const title=document.getElementById("memberDialogTitle");
+  const saveBtn=document.getElementById("saveMemberBtn");
+
+  if(id){
+    const m=memberById(id);
+    if(!m) return;
+    title.textContent="メンバー編集";
+    saveBtn.textContent="変更を保存";
+    document.getElementById("memberName").value=m.name;
+    document.getElementById("memberColor").value=m.color;
+    document.getElementById("memberLiving").value=m.living;
+    document.getElementById("memberDinner").checked=!!m.dinner;
+    document.getElementById("memberLunch").checked=!!m.lunch;
+  }else{
+    title.textContent="メンバー追加";
+    saveBtn.textContent="追加";
+    document.getElementById("memberName").value="";
+    document.getElementById("memberColor").value="#f4a8c6";
+    document.getElementById("memberLiving").value="home";
+    document.getElementById("memberDinner").checked=true;
+    document.getElementById("memberLunch").checked=true;
+  }
+  document.getElementById("memberDialog").showModal();
+}
+document.getElementById("addMemberBtn").onclick=()=>openMemberEditor();
 document.getElementById("saveMemberBtn").onclick=()=>{
   const name=document.getElementById("memberName").value.trim();
   if(!name) return;
-  state.members.push({
-    id:"m_"+Date.now(), name,
+
+  const payload={
+    name,
     color:document.getElementById("memberColor").value,
     living:document.getElementById("memberLiving").value,
     dinner:document.getElementById("memberDinner").checked,
     lunch:document.getElementById("memberLunch").checked
-  });
-  saveState(); document.getElementById("memberDialog").close(); renderAll();
+  };
+
+  if(editingMemberId){
+    const i=state.members.findIndex(m=>m.id===editingMemberId);
+    if(i>=0) state.members[i]={...state.members[i], ...payload};
+  }else{
+    state.members.push({id:"m_"+Date.now(), ...payload});
+  }
+
+  editingMemberId=null;
+  saveState();
+  document.getElementById("memberDialog").close();
+  renderAll();
 };
 
 document.getElementById("prevMonth").onclick=()=>{cursor=addMonths(cursor,-1);renderCalendar();};

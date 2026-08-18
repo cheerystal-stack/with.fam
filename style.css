@@ -153,3 +153,35 @@ input:focus,select:focus,textarea:focus{border-color:#7ebfe1;box-shadow:0 0 0 3p
   .form-grid{grid-template-columns:1fr}
   .form-grid label.wide{grid-column:auto}
 }
+
+
+/* v0.2 — 日付位置固定 & 編集UI */
+.day-cell{
+  position:relative;
+  padding:30px 5px 6px;
+  text-align:left;
+}
+.day-num{
+  position:absolute;
+  top:7px;
+  left:50%;
+  transform:translateX(-50%);
+  margin:0;
+  line-height:1;
+  z-index:2;
+}
+.day-cell .event-pill:first-of-type{margin-top:0}
+.existing-actions{display:flex;gap:6px;align-items:center}
+.edit-btn{
+  border:0;background:#eaf7ff;color:#397a9e;border-radius:10px;padding:7px 9px;font-weight:900
+}
+.member-actions{display:flex;gap:7px;align-items:center}
+.member-edit-btn{
+  border:2px solid #b8ddf0;background:#f5fbff;color:#4c7892;border-radius:11px;
+  padding:6px 9px;font-weight:900;font-size:.72rem
+}
+.member-edit-btn:active,.edit-btn:active{transform:translateY(1px)}
+@media (max-width:430px){
+  .day-cell{padding-top:27px}
+  .day-num{top:6px}
+}

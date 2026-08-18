@@ -1,0 +1,9 @@
+{
+  "name": "FAMILY",
+  "short_name": "FAMILY",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#c9efff",
+  "theme_color": "#9EDCFF",
+  "icons": []
+}

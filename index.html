@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#9EDCFF" />
+  <title>FAMILY</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="sky-bg">
+    <div class="cloud cloud-a"></div>
+    <div class="cloud cloud-b"></div>
+    <div class="rainbow-wrap" aria-hidden="true">
+      <div class="rainbow r1"></div>
+      <div class="rainbow r2"></div>
+      <div class="rainbow r3"></div>
+      <div class="rainbow r4"></div>
+      <div class="rainbow r5"></div>
+      <div class="rainbow r6"></div>
+    </div>
+  </div>
+
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">our days, together.</div>
+        <h1>FAMILY</h1>
+      </div>
+      <button class="cookie-button small" id="todayBtn">TODAY</button>
+    </header>
+
+    <section class="summary-grid">
+      <article class="cookie-card summary-card">
+        <div class="summary-title">🍚 TONIGHT</div>
+        <div class="summary-value" id="dinnerCount">—</div>
+        <div class="summary-sub" id="dinnerDetail">夕飯の人数</div>
+      </article>
+      <article class="cookie-card summary-card">
+        <div class="summary-title">🍱 TOMORROW</div>
+        <div class="summary-value" id="lunchCount">—</div>
+        <div class="summary-sub" id="lunchDetail">お弁当の数</div>
+      </article>
+    </section>
+
+    <section class="cookie-card calendar-card">
+      <div class="calendar-head">
+        <button class="icon-btn" id="prevMonth" aria-label="前の月">‹</button>
+        <div>
+          <div class="month-label" id="monthLabel"></div>
+          <div class="member-filters" id="memberFilters"></div>
+        </div>
+        <button class="icon-btn" id="nextMonth" aria-label="次の月">›</button>
+      </div>
+
+      <div class="weekdays">
+        <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+    <section class="cookie-card next-music-card">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">NEXT MUSIC</div>
+          <h2>🎼 次の音楽予定</h2>
+        </div>
+        <button class="text-btn" data-open-tab="music">見る</button>
+      </div>
+      <div id="nextMusic"></div>
+    </section>
+
+    <section class="tab-panel hidden" id="musicPanel">
+      <div class="cookie-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">MUSIC</div>
+            <h2>音楽活動</h2>
+          </div>
+          <button class="cookie-button small" id="addMusicBtn">＋ 追加</button>
+        </div>
+        <div class="music-groups" id="musicGroups"></div>
+        <div class="event-list" id="musicList"></div>
+      </div>
+    </section>
+
+    <section class="tab-panel hidden" id="membersPanel">
+      <div class="cookie-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">FAMILY</div>
+            <h2>メンバー</h2>
+          </div>
+          <button class="cookie-button small" id="addMemberBtn">＋ 追加</button>
+        </div>
+        <div id="memberList" class="member-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" id="quickAdd" aria-label="予定を追加">＋</button>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="home">🏠<span>HOME</span></button>
+    <button class="nav-btn" data-tab="calendar">📅<span>CALENDAR</span></button>
+    <button class="nav-btn" data-tab="music">🎼<span>MUSIC</span></button>
+    <button class="nav-btn" data-tab="members">👨‍👩‍👧‍👦<span>FAMILY</span></button>
+  </nav>
+
+  <dialog id="dayDialog" class="sheet">
+    <form method="dialog" class="sheet-inner" id="dayForm">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">DAY</div>
+          <h2 id="dayDialogTitle"></h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+
+      <div id="dayExisting" class="existing-events"></div>
+
+      <div class="form-grid">
+        <label>メンバー
+          <select id="eventMember"></select>
+        </label>
+
+        <label>カテゴリ
+          <select id="eventCategory">
+            <option value="仕事">仕事</option>
+            <option value="学校">学校</option>
+            <option value="バイト">バイト</option>
+            <option value="音楽">音楽</option>
+            <option value="飲み会">飲み会</option>
+            <option value="外泊">外泊</option>
+            <option value="帰省">帰省</option>
+            <option value="その他">その他</option>
+          </select>
+        </label>
+
+        <label class="wide">予定
+          <input id="eventTitle" placeholder="例：日勤 / 部活 / 友人とご飯" />
+        </label>
+
+        <label>時間
+          <input id="eventTime" placeholder="例：17:00-21:00" />
+        </label>
+
+        <label>場所
+          <input id="eventPlace" placeholder="任意" />
+        </label>
+
+        <label class="wide">メモ
+          <input id="eventMemo" placeholder="任意" />
+        </label>
+      </div>
+
+      <div class="life-block">
+        <div class="life-title">生活</div>
+        <div class="toggle-row">
+          <span>🍚 夕飯</span>
+          <div class="segmented" id="dinnerSegments">
+            <button type="button" data-value="yes">いる</button>
+            <button type="button" data-value="no">いらない</button>
+            <button type="button" data-value="unknown" class="active">未回答</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <span>🍱 お弁当</span>
+          <div class="segmented" id="lunchSegments">
+            <button type="button" data-value="yes">いる</button>
+            <button type="button" data-value="no">いらない</button>
+            <button type="button" data-value="unknown" class="active">未回答</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="ghost-button" id="bulkBtn">まとめ入力</button>
+        <button type="button" class="cookie-button" id="saveEventBtn">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="bulkDialog" class="sheet">
+    <form method="dialog" class="sheet-inner">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">BULK INPUT</div>
+          <h2>まとめ入力</h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+
+      <p class="hint">同じ予定を入れたい日をタップして選択。</p>
+      <div id="bulkDateGrid" class="bulk-date-grid"></div>
+
+      <div class="form-grid">
+        <label>メンバー
+          <select id="bulkMember"></select>
+        </label>
+        <label>カテゴリ
+          <select id="bulkCategory">
+            <option value="仕事">仕事</option>
+            <option value="学校">学校</option>
+            <option value="バイト">バイト</option>
+            <option value="音楽">音楽</option>
+            <option value="その他">その他</option>
+          </select>
+        </label>
+        <label class="wide">予定
+          <input id="bulkTitle" placeholder="例：日勤 / 部活 / ユースオケ練習" />
+        </label>
+        <label>時間
+          <input id="bulkTime" placeholder="任意" />
+        </label>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="cookie-button" id="saveBulkBtn">選択日に一括登録</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="musicDialog" class="sheet">
+    <form method="dialog" class="sheet-inner">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">MUSIC EVENT</div>
+          <h2>音楽予定を追加</h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label>団体
+          <select id="musicGroup"></select>
+        </label>
+        <label>種別
+          <select id="musicType">
+            <option>練習</option>
+            <option>合奏</option>
+            <option>リハ</option>
+            <option>本番</option>
+            <option>コンクール</option>
+            <option>レッスン</option>
+          </select>
+        </label>
+        <label>日付
+          <input id="musicDate" type="date" />
+        </label>
+        <label>時間
+          <input id="musicTime" placeholder="例：13:00-17:00" />
+        </label>
+        <label class="wide">タイトル
+          <input id="musicTitle" placeholder="例：定期演奏会 / 通常練習" />
+        </label>
+        <label class="wide">演奏曲
+          <textarea id="musicProgram" rows="3" placeholder="1行1曲で入力"></textarea>
+        </label>
+        <label class="wide">場所
+          <input id="musicPlace" placeholder="任意" />
+        </label>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" class="cookie-button" id="saveMusicBtn">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="memberDialog" class="sheet">
+    <form method="dialog" class="sheet-inner">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">MEMBER</div>
+          <h2>メンバー追加</h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label class="wide">名前
+          <input id="memberName" placeholder="名前" />
+        </label>
+        <label>カラー
+          <input id="memberColor" type="color" value="#f4a8c6" />
+        </label>
+        <label>暮らし
+          <select id="memberLiving">
+            <option value="home">同居</option>
+            <option value="away">別居</option>
+          </select>
+        </label>
+        <label class="check-label"><input id="memberDinner" type="checkbox" checked /> 🍚夕飯</label>
+        <label class="check-label"><input id="memberLunch" type="checkbox" checked /> 🍱弁当</label>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="cookie-button" id="saveMemberBtn">追加</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

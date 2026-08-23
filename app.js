@@ -26,6 +26,13 @@ let lunchChoice = "unknown";
 let bulkSelected = new Set();
 let editingEventId = null;
 let editingMemberId = null;
+let timelineDate = dateKey(new Date());
+
+const SHIFT_PRESETS = {
+  day:{title:"日勤",start:"08:30",end:"17:00"},
+  half:{title:"半日",start:"08:30",end:"12:30"},
+  late:{title:"遅番",start:"10:30",end:"19:00"}
+};
 
 function loadState(){
   try{
@@ -54,6 +61,61 @@ function mix(hex, amount=0.78){
 }
 function isSameDay(a,b){ return dateKey(a)===dateKey(b); }
 
+function timeOptions(){
+  const values=[""];
+  for(let h=6;h<=24;h++){
+    for(const min of [0,30]){
+      if(h===24 && min===30) continue;
+      values.push(`${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}`);
+    }
+  }
+  return values;
+}
+function populateTimeSelect(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.innerHTML=timeOptions().map(t=>`<option value="${t}">${t||"—"}</option>`).join("");
+}
+function migrateEventTimes(){
+  state.events.forEach(e=>{
+    if((!e.startTime && !e.endTime) && e.time){
+      const m=String(e.time).match(/(\d{1,2}:\d{2})\s*[-–〜~]\s*(\d{1,2}:\d{2})/);
+      if(m){
+        e.startTime=m[1].padStart(5,"0");
+        e.endTime=m[2].padStart(5,"0");
+      }
+    }
+  });
+}
+function timeText(e){
+  if(e.startTime && e.endTime) return `${e.startTime}–${e.endTime}`;
+  return e.time || "";
+}
+function minutes(t){
+  if(!t) return null;
+  const [h,m]=t.split(":").map(Number);
+  return h*60+m;
+}
+function setTimePair(prefix,start="",end=""){
+  const s=document.getElementById(prefix+"Start"), e=document.getElementById(prefix+"End");
+  if(s) s.value=start||"";
+  if(e) e.value=end||"";
+}
+function readTimePair(prefix){
+  return {
+    startTime:document.getElementById(prefix+"Start")?.value||"",
+    endTime:document.getElementById(prefix+"End")?.value||""
+  };
+}
+function applyPreset(prefix,key,titleId){
+  if(key==="clear"){ setTimePair(prefix,"",""); return; }
+  const p=SHIFT_PRESETS[key]; if(!p) return;
+  setTimePair(prefix,p.start,p.end);
+  const title=document.getElementById(titleId);
+  if(title && (!title.value.trim() || ["仕事","日勤","半日","遅番"].includes(title.value.trim()))) title.value=p.title;
+}
+
+
 function renderAll(){
   renderFilters();
   renderCalendar();
@@ -61,6 +123,7 @@ function renderAll(){
   renderNextMusic();
   renderMusic();
   renderMembers();
+  renderTimeline();
   populateMemberSelects();
   populateGroupSelect();
 }
@@ -160,7 +223,7 @@ function renderNextMusic(){
   host.innerHTML=`<div class="music-mini">
     <div class="music-date">${d.getMonth()+1}/${d.getDate()}</div>
     <div class="music-copy"><strong>${esc(g?.name||"音楽")}｜${esc(e.title||e.musicType||"予定")}</strong>
-    ${esc((e.memberIds||[]).map(id=>memberById(id)?.name).filter(Boolean).join("・"))}${e.time?` ・ ${esc(e.time)}`:""}</div>
+    ${esc((e.memberIds||[]).map(id=>memberById(id)?.name).filter(Boolean).join("・"))}${timeText(e)?` ・ ${esc(timeText(e))}`:""}</div>
   </div>`;
 }
 function renderMusic(){
@@ -173,7 +236,7 @@ function renderMusic(){
     const g=groupById(e.groupId), d=parseKey(e.date);
     const names=(e.memberIds||[]).map(id=>memberById(id)?.name).filter(Boolean).join("・");
     return `<div class="event-row">
-      <div class="event-row-top"><span>${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${esc(e.time||"")}</span><span>${esc(names)}</span></div>
+      <div class="event-row-top"><span>${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${esc(timeText(e))}</span><span>${esc(names)}</span></div>
       <div class="event-row-title">🎼 ${esc(g?.name||"")}｜${esc(e.title||e.musicType||"予定")}</div>
       ${e.program?`<div class="member-meta">♪ ${esc(e.program).replace(/\n/g," / ")}</div>`:""}
       ${e.place?`<div class="member-meta">📍 ${esc(e.place)}</div>`:""}
@@ -206,9 +269,10 @@ function openDay(key){
   const d=parseKey(key);
   document.getElementById("dayDialogTitle").textContent=`${d.getMonth()+1}月${d.getDate()}日`;
   document.getElementById("eventTitle").value="";
-  document.getElementById("eventTime").value="";
+  setTimePair("event","","");
   document.getElementById("eventPlace").value="";
   document.getElementById("eventMemo").value="";
+  timelineDate=key; renderTimeline();
   document.getElementById("eventCategory").value="仕事";
   document.getElementById("saveEventBtn").textContent="保存";
   const memberId=document.getElementById("eventMember").value || state.members[0]?.id;
@@ -223,7 +287,7 @@ function renderExisting(){
   host.innerHTML=events.map(e=>{
     const names=e.memberIds?.length ? e.memberIds.map(id=>memberById(id)?.name).filter(Boolean).join("・") : memberById(e.memberId)?.name;
     return `<div class="existing-item">
-      <div class="existing-copy"><strong>${esc(names||"")}｜${esc(e.title||e.category)}</strong>${esc(e.time||"")}</div>
+      <div class="existing-copy"><strong>${esc(names||"")}｜${esc(e.title||e.category)}</strong>${esc(timeText(e))}</div>
       <div class="existing-actions">
         <button type="button" class="edit-btn" data-edit="${e.id}">編集</button>
         <button type="button" class="delete-btn" data-delete="${e.id}">削除</button>
@@ -255,7 +319,7 @@ function startEditEvent(id){
   if(memberId) document.getElementById("eventMember").value=memberId;
   document.getElementById("eventCategory").value=e.category || "その他";
   document.getElementById("eventTitle").value=e.title || "";
-  document.getElementById("eventTime").value=e.time || "";
+  setTimePair("event",e.startTime||"",e.endTime||"");
   document.getElementById("eventPlace").value=e.place || "";
   document.getElementById("eventMemo").value=e.memo || "";
   document.getElementById("saveEventBtn").textContent="変更を保存";
@@ -277,7 +341,8 @@ document.getElementById("saveEventBtn").onclick=()=>{
 
   const payload={
     date:selectedDate, memberId, category, title,
-    time:document.getElementById("eventTime").value.trim(),
+    ...readTimePair("event"),
+    time:"",
     place:document.getElementById("eventPlace").value.trim(),
     memo:document.getElementById("eventMemo").value.trim()
   };
@@ -329,15 +394,15 @@ document.getElementById("saveBulkBtn").onclick=()=>{
   const memberId=document.getElementById("bulkMember").value;
   const category=document.getElementById("bulkCategory").value;
   const title=document.getElementById("bulkTitle").value.trim()||category;
-  const time=document.getElementById("bulkTime").value.trim();
-  bulkSelected.forEach(date=>state.events.push({id:crypto.randomUUID(),date,memberId,category,title,time,place:"",memo:""}));
+  const timeData=readTimePair("bulk");
+  bulkSelected.forEach(date=>state.events.push({id:crypto.randomUUID(),date,memberId,category,title,...timeData,time:"",place:"",memo:""}));
   saveState(); document.getElementById("bulkDialog").close(); renderAll();
 };
 
 document.getElementById("addMusicBtn").onclick=()=>{
   document.getElementById("musicDate").value=dateKey(new Date());
   document.getElementById("musicTitle").value="";
-  document.getElementById("musicTime").value="";
+  setTimePair("music","","");
   document.getElementById("musicProgram").value="";
   document.getElementById("musicPlace").value="";
   document.getElementById("musicDialog").showModal();
@@ -352,7 +417,8 @@ document.getElementById("saveMusicBtn").onclick=()=>{
     memberIds:[...(group?.members||[])],
     title:document.getElementById("musicTitle").value.trim() || document.getElementById("musicType").value,
     musicType:document.getElementById("musicType").value,
-    time:document.getElementById("musicTime").value.trim(),
+    ...readTimePair("music"),
+    time:"",
     program:document.getElementById("musicProgram").value.trim(),
     place:document.getElementById("musicPlace").value.trim()
   });
@@ -363,11 +429,13 @@ function openMemberEditor(id=null){
   editingMemberId=id;
   const title=document.getElementById("memberDialogTitle");
   const saveBtn=document.getElementById("saveMemberBtn");
+  const danger=document.getElementById("memberDangerZone");
 
   if(id){
     const m=memberById(id);
     if(!m) return;
     title.textContent="メンバー編集";
+    danger.classList.remove("hidden");
     saveBtn.textContent="変更を保存";
     document.getElementById("memberName").value=m.name;
     document.getElementById("memberColor").value=m.color;
@@ -376,6 +444,7 @@ function openMemberEditor(id=null){
     document.getElementById("memberLunch").checked=!!m.lunch;
   }else{
     title.textContent="メンバー追加";
+    danger.classList.add("hidden");
     saveBtn.textContent="追加";
     document.getElementById("memberName").value="";
     document.getElementById("memberColor").value="#f4a8c6";
@@ -411,6 +480,76 @@ document.getElementById("saveMemberBtn").onclick=()=>{
   renderAll();
 };
 
+
+document.getElementById("deleteMemberBtn").onclick=()=>{
+  if(!editingMemberId) return;
+  const m=memberById(editingMemberId);
+  if(!m) return;
+  if(!confirm(`${m.name}をメンバーから削除しますか？\n過去の予定は履歴として残します。`)) return;
+  state.members=state.members.filter(x=>x.id!==editingMemberId);
+  state.groups.forEach(g=>g.members=(g.members||[]).filter(id=>id!==editingMemberId));
+  editingMemberId=null;
+  saveState();
+  document.getElementById("memberDialog").close();
+  if(selectedFilter===m.id) selectedFilter="all";
+  renderAll();
+};
+
+function renderTimeline(){
+  const host=document.getElementById("timeline");
+  if(!host) return;
+  const d=parseKey(timelineDate);
+  document.getElementById("timelineDateLabel").textContent=`${d.getMonth()+1}月${d.getDate()}日`;
+  const members=state.members;
+  host.style.setProperty("--member-count",Math.max(1,members.length));
+  host.innerHTML=`<div class="timeline-corner"></div>`+
+    members.map(m=>`<div class="timeline-member"><span class="member-dot" style="display:inline-block;background:${m.color};vertical-align:-3px;margin-right:4px"></span>${esc(m.name)}</div>`).join("");
+
+  for(let h=6;h<24;h++){
+    host.insertAdjacentHTML("beforeend",`<div class="timeline-time">${String(h).padStart(2,"0")}:00</div>`);
+    members.forEach(m=>{
+      const cell=document.createElement("div");
+      cell.className="timeline-slot";
+      cell.dataset.member=m.id;
+      cell.dataset.hour=h;
+      host.appendChild(cell);
+    });
+  }
+
+  const events=state.events.filter(e=>e.date===timelineDate && e.startTime && e.endTime);
+  events.forEach(e=>{
+    const ids=e.memberIds?.length ? e.memberIds : [e.memberId];
+    ids.forEach(id=>{
+      if(!memberById(id)) return;
+      const start=minutes(e.startTime), end=minutes(e.endTime);
+      if(start===null||end===null||end<=start) return;
+      const clippedStart=Math.max(start,360), clippedEnd=Math.min(end,1440);
+      if(clippedEnd<=clippedStart) return;
+      const hour=Math.floor(clippedStart/60);
+      const slot=host.querySelector(`.timeline-slot[data-member="${CSS.escape(id)}"][data-hour="${hour}"]`);
+      if(!slot) return;
+      const m=memberById(id);
+      const top=((clippedStart-hour*60)/60)*32;
+      const height=Math.max(18,((clippedEnd-clippedStart)/60)*32);
+      const block=document.createElement("div");
+      block.className="timeline-event";
+      block.style.top=`${top}px`;
+      block.style.height=`${height}px`;
+      block.style.background=mix(m.color,.5);
+      block.textContent=`${e.title||e.category} ${e.startTime}–${e.endTime}`;
+      slot.appendChild(block);
+    });
+  });
+}
+
+["event","bulk","music"].forEach(prefix=>{
+  populateTimeSelect(prefix+"Start");
+  populateTimeSelect(prefix+"End");
+});
+document.querySelectorAll("#eventPresets [data-preset]").forEach(b=>b.onclick=()=>applyPreset("event",b.dataset.preset,"eventTitle"));
+document.querySelectorAll("#bulkPresets [data-preset]").forEach(b=>b.onclick=()=>applyPreset("bulk",b.dataset.preset,"bulkTitle"));
+document.getElementById("timelineTodayBtn").onclick=()=>{timelineDate=dateKey(new Date());renderTimeline();};
+
 document.getElementById("prevMonth").onclick=()=>{cursor=addMonths(cursor,-1);renderCalendar();};
 document.getElementById("nextMonth").onclick=()=>{cursor=addMonths(cursor,1);renderCalendar();};
 document.getElementById("todayBtn").onclick=()=>{cursor=startOfMonth(new Date());renderCalendar();};
@@ -424,6 +563,7 @@ function openTab(tab){
   document.querySelector(".calendar-card").classList.toggle("hidden", tab==="music"||tab==="members");
   document.querySelector(".summary-grid").classList.toggle("hidden", tab==="music"||tab==="members");
   document.querySelector(".next-music-card").classList.toggle("hidden", tab==="music"||tab==="members");
+  document.getElementById("timelineCard").classList.toggle("hidden", tab==="music"||tab==="members");
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab || (tab==="home"&&b.dataset.tab==="home")));
   if(tab==="calendar"){
     document.querySelector(".calendar-card").classList.remove("hidden");
@@ -432,6 +572,8 @@ function openTab(tab){
 document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
 document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.openTab));
 
+migrateEventTimes();
+saveState();
 renderAll();
 
 if("serviceWorker" in navigator){

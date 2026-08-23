@@ -60,6 +60,19 @@
       <div class="calendar-grid" id="calendarGrid"></div>
     </section>
 
+    <section class="cookie-card timeline-card" id="timelineCard">
+      <div class="timeline-head">
+        <div>
+          <div class="eyebrow">DAILY TIMELINE</div>
+          <div class="timeline-date" id="timelineDateLabel">今日</div>
+        </div>
+        <button class="cookie-button small" id="timelineTodayBtn">今日</button>
+      </div>
+      <div class="timeline-scroll">
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </section>
+
     <section class="cookie-card next-music-card">
       <div class="section-head">
         <div>
@@ -143,9 +156,20 @@
           <input id="eventTitle" placeholder="例：日勤 / 部活 / 友人とご飯" />
         </label>
 
-        <label>時間
-          <input id="eventTime" placeholder="例：17:00-21:00" />
-        </label>
+        <div class="wide">
+          <div class="eyebrow">TIME</div>
+          <div class="preset-row" id="eventPresets">
+            <button type="button" class="preset-btn" data-preset="day">日勤</button>
+            <button type="button" class="preset-btn" data-preset="half">半日</button>
+            <button type="button" class="preset-btn" data-preset="late">遅番</button>
+            <button type="button" class="preset-btn" data-preset="clear">時間なし</button>
+          </div>
+          <div class="time-pair">
+            <label>開始<select id="eventStart"></select></label>
+            <span class="time-arrow">→</span>
+            <label>終了<select id="eventEnd"></select></label>
+          </div>
+        </div>
 
         <label>場所
           <input id="eventPlace" placeholder="任意" />
@@ -213,9 +237,20 @@
         <label class="wide">予定
           <input id="bulkTitle" placeholder="例：日勤 / 部活 / ユースオケ練習" />
         </label>
-        <label>時間
-          <input id="bulkTime" placeholder="任意" />
-        </label>
+        <div class="wide">
+          <div class="eyebrow">TIME</div>
+          <div class="preset-row" id="bulkPresets">
+            <button type="button" class="preset-btn" data-preset="day">日勤</button>
+            <button type="button" class="preset-btn" data-preset="half">半日</button>
+            <button type="button" class="preset-btn" data-preset="late">遅番</button>
+            <button type="button" class="preset-btn" data-preset="clear">時間なし</button>
+          </div>
+          <div class="time-pair">
+            <label>開始<select id="bulkStart"></select></label>
+            <span class="time-arrow">→</span>
+            <label>終了<select id="bulkEnd"></select></label>
+          </div>
+        </div>
       </div>
 
       <div class="sheet-actions">
@@ -252,9 +287,11 @@
         <label>日付
           <input id="musicDate" type="date" />
         </label>
-        <label>時間
-          <input id="musicTime" placeholder="例：13:00-17:00" />
-        </label>
+        <div class="wide time-pair">
+          <label>開始<select id="musicStart"></select></label>
+          <span class="time-arrow">→</span>
+          <label>終了<select id="musicEnd"></select></label>
+        </div>
         <label class="wide">タイトル
           <input id="musicTitle" placeholder="例：定期演奏会 / 通常練習" />
         </label>
@@ -299,6 +336,9 @@
         <label class="check-label"><input id="memberLunch" type="checkbox" checked /> 🍱弁当</label>
       </div>
 
+      <div class="danger-zone hidden" id="memberDangerZone">
+        <button type="button" class="danger-button" id="deleteMemberBtn">このメンバーを削除</button>
+      </div>
       <div class="sheet-actions">
         <button type="button" class="cookie-button" id="saveMemberBtn">追加</button>
       </div>

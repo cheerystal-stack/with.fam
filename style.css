@@ -367,3 +367,68 @@ body{
   .nav-btn span{font-size:.46rem}
 }
 
+
+
+/* =========================================================
+   with.fam v0.3.2 — field-test polish
+   ========================================================= */
+
+/* Handwritten feel: keep numeric/time UI crisp, soften labels and plans */
+.event-pill,
+.music-copy,
+.event-row-title,
+.member-badge,
+.filter-chip,
+.group-chip,
+.summary-title,
+.section-head h2,
+.timeline-member,
+.existing-copy strong{
+  font-family:"Yomogi",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+}
+
+/* A stamp is a separate visual layer, not part of the event title */
+.day-cell .day-stamps{
+  position:absolute;
+  right:4px;
+  bottom:3px;
+  display:flex;
+  gap:1px;
+  z-index:3;
+  pointer-events:none;
+}
+.day-stamp{
+  font-family:"Yomogi",sans-serif;
+  font-size:.72rem;
+  line-height:1;
+  font-weight:900;
+  color:#5687a2;
+  text-shadow:0 1px 0 #fff;
+}
+
+/* Smartphone: preserve the cloud composition instead of cropping it with cover */
+@media(max-width:500px){
+  body{
+    background-color:#bfeaff;
+    background-image:url("./sky-bg.png"),linear-gradient(180deg,#bfeaff 0%,#dff5ff 38%,#c9efff 100%);
+    background-size:100% auto,100% 100%;
+    background-position:center top,center top;
+    background-repeat:no-repeat,no-repeat;
+    background-attachment:scroll,scroll;
+  }
+
+  /* denser family lanes; 4 people fit comfortably, extras can scroll */
+  .timeline{
+    min-width:360px;
+    grid-template-columns:34px repeat(var(--member-count),minmax(74px,1fr));
+  }
+  .timeline-time{padding-right:2px;font-size:.50rem}
+  .timeline-corner,.timeline-member{font-size:.57rem;padding-left:1px;padding-right:1px}
+  .timeline-event{left:2px;right:2px;font-size:.49rem;padding:2px}
+  .timeline-member .member-dot{width:10px!important;height:10px!important;margin-right:2px!important}
+}
+
+/* On the monthly calendar, information beats decoration */
+@media(max-width:500px){
+  .day-stamp{font-size:.63rem}
+}

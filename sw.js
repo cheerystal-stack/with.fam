@@ -1,5 +1,5 @@
 
-const CACHE="with-fam-v0.3.1";
+const CACHE="with-fam-v0.3.2";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.webmanifest","./sky-bg.png"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener("activate",e=>e.waitUntil(

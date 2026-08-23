@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#9EDCFF" />
   <title>FAMILY</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="sky-bg">
@@ -226,6 +229,15 @@
 
         <label class="wide">メモ
           <input id="eventMemo" placeholder="任意" />
+        </label>
+        <label>スタンプ
+          <select id="eventStamp">
+            <option value="">なし</option>
+            <option value="♪">♪ 音楽</option>
+            <option value="★">★ 大事</option>
+            <option value="●">● イベント</option>
+            <option value="♥">♥ プライベート</option>
+          </select>
         </label>
       </div>
 

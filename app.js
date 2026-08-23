@@ -58,6 +58,18 @@ function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function addMonths(d,n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
 function memberById(id){ return state.members.find(m=>m.id===id); }
 function groupById(id){ return state.groups.find(g=>g.id===id); }
+
+function monthTitle(e){
+  const raw=e.title||e.category||"";
+  const aliases={
+    "ユースオケ":"ユース",
+    "ユースオーケストラ":"ユース",
+    "ジュニオケ":"ジュニ",
+    "ジュニアオーケストラ":"ジュニ",
+    "学校の部活":"部活"
+  };
+  return aliases[raw]||raw;
+}
 function esc(s=""){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
 function mix(hex, amount=0.78){
   const c=hex.replace("#","");
@@ -187,6 +199,19 @@ function renderCalendar(){
       pill.innerHTML=`<span class="event-who">${who ? esc(who)+" " : ""}</span><span class="event-title">${e.category==="音楽"?"🎼 ":""}${esc(e.title||e.category)}</span>`;
       cell.appendChild(pill);
     });
+    const stamps=[...new Set(events.map(e=>e.stamp || (e.category==="音楽"?"♪":"")).filter(Boolean))];
+    if(stamps.length){
+      const stampWrap=document.createElement("div");
+      stampWrap.className="day-stamps";
+      stamps.slice(0,2).forEach(s=>{
+        const span=document.createElement("span");
+        span.className="day-stamp";
+        span.textContent=s;
+        stampWrap.appendChild(span);
+      });
+      cell.appendChild(stampWrap);
+    }
+
     if(events.length>3){
       const more=document.createElement("div");
       more.className="more-pill";
@@ -278,6 +303,7 @@ function openDay(key){
   setTimePair("event","","");
   document.getElementById("eventPlace").value="";
   document.getElementById("eventMemo").value="";
+  document.getElementById("eventStamp").value="";
   timelineDate=key; renderTimeline();
   document.getElementById("eventCategory").value="仕事";
   document.getElementById("saveEventBtn").textContent="保存";
@@ -332,6 +358,7 @@ function startEditEvent(id){
   setTimePair("event",e.startTime||"",e.endTime||"");
   document.getElementById("eventPlace").value=e.place || "";
   document.getElementById("eventMemo").value=e.memo || "";
+  document.getElementById("eventStamp").value=e.stamp || "";
   document.getElementById("saveEventBtn").textContent="変更を保存";
   loadLifeChoices(memberId);
 }
@@ -360,7 +387,8 @@ document.getElementById("saveEventBtn").onclick=()=>{
     ...readTimePair("event"),
     time:"",
     place:document.getElementById("eventPlace").value.trim(),
-    memo:document.getElementById("eventMemo").value.trim()
+    memo:document.getElementById("eventMemo").value.trim(),
+    stamp:document.getElementById("eventStamp").value
   };
 
   if(editingEventId){
@@ -450,7 +478,7 @@ document.getElementById("saveMusicBtn").onclick=()=>{
   const date=document.getElementById("musicDate").value;
   if(!date) return;
   state.events.push({
-    id:crypto.randomUUID(), date, category:"音楽", groupId,
+    id:crypto.randomUUID(), date, category:"音楽", groupId, stamp:"♪",
     memberIds:[...(group?.members||[])],
     title:document.getElementById("musicTitle").value.trim() || document.getElementById("musicType").value,
     musicType:document.getElementById("musicType").value,
@@ -581,7 +609,7 @@ function renderTimeline(){
       block.style.top=`${top}px`;
       block.style.height=`${height}px`;
       block.style.background=mix(m.color,.5);
-      block.textContent=`${e.title||e.category} ${e.startTime}–${e.endTime}`;
+      block.textContent=`${monthTitle(e)} ${e.startTime}–${e.endTime}`;
       slot.appendChild(block);
     });
   });

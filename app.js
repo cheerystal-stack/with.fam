@@ -27,12 +27,18 @@ let bulkSelected = new Set();
 let editingEventId = null;
 let editingMemberId = null;
 let timelineDate = dateKey(new Date());
+let lifeExpanded = false;
 
-const SHIFT_PRESETS = {
-  day:{title:"日勤",start:"08:30",end:"17:00"},
+const DEFAULT_SHIFT_PRESETS = {
+  day:{title:"日勤",start:"08:30",end:"17:15"},
   half:{title:"半日",start:"08:30",end:"12:30"},
   late:{title:"遅番",start:"10:30",end:"19:00"}
 };
+function shiftPresets(){
+  state.settings ??= {};
+  state.settings.shiftPresets ??= structuredClone(DEFAULT_SHIFT_PRESETS);
+  return state.settings.shiftPresets;
+}
 
 function loadState(){
   try{
@@ -64,8 +70,8 @@ function isSameDay(a,b){ return dateKey(a)===dateKey(b); }
 function timeOptions(){
   const values=[""];
   for(let h=6;h<=24;h++){
-    for(const min of [0,30]){
-      if(h===24 && min===30) continue;
+    for(const min of [0,15,30,45]){
+      if(h===24 && min>0) continue;
       values.push(`${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}`);
     }
   }
@@ -109,7 +115,7 @@ function readTimePair(prefix){
 }
 function applyPreset(prefix,key,titleId){
   if(key==="clear"){ setTimePair(prefix,"",""); return; }
-  const p=SHIFT_PRESETS[key]; if(!p) return;
+  const p=shiftPresets()[key]; if(!p) return;
   setTimePair(prefix,p.start,p.end);
   const title=document.getElementById(titleId);
   if(title && (!title.value.trim() || ["仕事","日勤","半日","遅番"].includes(title.value.trim()))) title.value=p.title;
@@ -178,7 +184,7 @@ function renderCalendar(){
       pill.style.background=mix(color,.66);
       pill.style.color="#315d76";
       const who=(e.memberIds?.length>1) ? e.memberIds.map(id=>memberById(id)?.name).filter(Boolean).join("・") : (m?.name||"");
-      pill.textContent=`${who ? who+" " : ""}${e.category==="音楽"?"🎼 ":""}${e.title||e.category}`;
+      pill.innerHTML=`<span class="event-who">${who ? esc(who)+" " : ""}</span><span class="event-title">${e.category==="音楽"?"🎼 ":""}${esc(e.title||e.category)}</span>`;
       cell.appendChild(pill);
     });
     if(events.length>3){
@@ -275,6 +281,10 @@ function openDay(key){
   timelineDate=key; renderTimeline();
   document.getElementById("eventCategory").value="仕事";
   document.getElementById("saveEventBtn").textContent="保存";
+  lifeExpanded=false;
+  document.getElementById("lifeBlock").classList.add("hidden");
+  document.getElementById("lifeExpandBtn").classList.remove("active");
+  document.getElementById("lifeExpandBtn").textContent="＋ 食事・生活情報を追加";
   const memberId=document.getElementById("eventMember").value || state.members[0]?.id;
   loadLifeChoices(memberId);
   renderExisting();
@@ -333,6 +343,12 @@ function updateSegments(){
 document.querySelectorAll("#dinnerSegments button").forEach(b=>b.onclick=()=>{dinnerChoice=b.dataset.value;updateSegments();});
 document.querySelectorAll("#lunchSegments button").forEach(b=>b.onclick=()=>{lunchChoice=b.dataset.value;updateSegments();});
 document.getElementById("eventMember").addEventListener("change",e=>loadLifeChoices(e.target.value));
+document.getElementById("lifeExpandBtn").onclick=()=>{
+  lifeExpanded=!lifeExpanded;
+  document.getElementById("lifeBlock").classList.toggle("hidden",!lifeExpanded);
+  document.getElementById("lifeExpandBtn").classList.toggle("active",lifeExpanded);
+  document.getElementById("lifeExpandBtn").textContent=lifeExpanded?"− 食事・生活情報を閉じる":"＋ 食事・生活情報を追加";
+};
 
 document.getElementById("saveEventBtn").onclick=()=>{
   const memberId=document.getElementById("eventMember").value;
@@ -357,12 +373,18 @@ document.getElementById("saveEventBtn").onclick=()=>{
     state.events.push({id:crypto.randomUUID(), ...payload});
   }
 
-  state.life[selectedDate] ??= {};
-  state.life[selectedDate][memberId]={dinner:dinnerChoice,lunch:lunchChoice};
+  if(lifeExpanded){
+    state.life[selectedDate] ??= {};
+    state.life[selectedDate][memberId]={dinner:dinnerChoice,lunch:lunchChoice};
+  }
 
   if(category==="外泊" || category==="飲み会"){
     const m=memberById(memberId);
-    if(m?.dinner) state.life[selectedDate][memberId].dinner="no";
+    if(m?.dinner){
+      state.life[selectedDate] ??= {};
+      state.life[selectedDate][memberId] ??= {dinner:"unknown",lunch:"unknown"};
+      state.life[selectedDate][memberId].dinner="no";
+    }
   }
 
   editingEventId=null;
@@ -376,17 +398,32 @@ function openBulk(){
   const host=document.getElementById("bulkDateGrid");
   host.innerHTML="";
   const y=cursor.getFullYear(), m=cursor.getMonth();
+  document.getElementById("bulkMonthLabel").textContent=`${y}年 ${m+1}月`;
+  const first=new Date(y,m,1);
+  const mondayIndex=(first.getDay()+6)%7;
+  for(let i=0;i<mondayIndex;i++){
+    const blank=document.createElement("div");
+    blank.className="bulk-blank";
+    host.appendChild(blank);
+  }
   const days=new Date(y,m+1,0).getDate();
+  const dowNames=["日","月","火","水","木","金","土"];
   for(let i=1;i<=days;i++){
     const d=new Date(y,m,i), key=dateKey(d);
     const b=document.createElement("button");
-    b.type="button"; b.className="bulk-date"; b.textContent=i;
+    b.type="button";
+    b.className="bulk-date";
+    if(d.getDay()===6) b.classList.add("sat");
+    if(d.getDay()===0) b.classList.add("sun");
+    b.innerHTML=`<span class="bulk-daynum">${i}</span><span class="bulk-dow">${dowNames[d.getDay()]}</span>`;
     b.onclick=()=>{ 
       if(bulkSelected.has(key)){bulkSelected.delete(key);b.classList.remove("selected");}
       else{bulkSelected.add(key);b.classList.add("selected");}
     };
     host.appendChild(b);
   }
+  document.getElementById("bulkTitle").value="";
+  setTimePair("bulk","","");
   document.getElementById("bulkDialog").showModal();
 }
 document.getElementById("bulkBtn").onclick=()=>{document.getElementById("dayDialog").close();openBulk();};
@@ -495,6 +532,13 @@ document.getElementById("deleteMemberBtn").onclick=()=>{
   renderAll();
 };
 
+function timelineHourHeight(){ return window.matchMedia("(max-width:500px)").matches ? 22 : 32; }
+function shiftTimelineDay(delta){
+  const d=parseKey(timelineDate);
+  d.setDate(d.getDate()+delta);
+  timelineDate=dateKey(d);
+  renderTimeline();
+}
 function renderTimeline(){
   const host=document.getElementById("timeline");
   if(!host) return;
@@ -529,8 +573,9 @@ function renderTimeline(){
       const slot=host.querySelector(`.timeline-slot[data-member="${CSS.escape(id)}"][data-hour="${hour}"]`);
       if(!slot) return;
       const m=memberById(id);
-      const top=((clippedStart-hour*60)/60)*32;
-      const height=Math.max(18,((clippedEnd-clippedStart)/60)*32);
+      const hourHeight=timelineHourHeight();
+      const top=((clippedStart-hour*60)/60)*hourHeight;
+      const height=Math.max(14,((clippedEnd-clippedStart)/60)*hourHeight);
       const block=document.createElement("div");
       block.className="timeline-event";
       block.style.top=`${top}px`;
@@ -549,6 +594,8 @@ function renderTimeline(){
 document.querySelectorAll("#eventPresets [data-preset]").forEach(b=>b.onclick=()=>applyPreset("event",b.dataset.preset,"eventTitle"));
 document.querySelectorAll("#bulkPresets [data-preset]").forEach(b=>b.onclick=()=>applyPreset("bulk",b.dataset.preset,"bulkTitle"));
 document.getElementById("timelineTodayBtn").onclick=()=>{timelineDate=dateKey(new Date());renderTimeline();};
+document.getElementById("timelinePrevBtn").onclick=()=>shiftTimelineDay(-1);
+document.getElementById("timelineNextBtn").onclick=()=>shiftTimelineDay(1);
 
 document.getElementById("prevMonth").onclick=()=>{cursor=addMonths(cursor,-1);renderCalendar();};
 document.getElementById("nextMonth").onclick=()=>{cursor=addMonths(cursor,1);renderCalendar();};
@@ -558,23 +605,105 @@ document.getElementById("quickAdd").onclick=()=>openDay(dateKey(new Date()));
 function openTab(tab){
   const music=document.getElementById("musicPanel");
   const members=document.getElementById("membersPanel");
+  const settings=document.getElementById("settingsPanel");
+  const special=tab==="music"||tab==="members"||tab==="settings";
+
   music.classList.toggle("hidden",tab!=="music");
   members.classList.toggle("hidden",tab!=="members");
-  document.querySelector(".calendar-card").classList.toggle("hidden", tab==="music"||tab==="members");
-  document.querySelector(".summary-grid").classList.toggle("hidden", tab==="music"||tab==="members");
-  document.querySelector(".next-music-card").classList.toggle("hidden", tab==="music"||tab==="members");
-  document.getElementById("timelineCard").classList.toggle("hidden", tab==="music"||tab==="members");
+  settings.classList.toggle("hidden",tab!=="settings");
+
+  document.querySelector(".calendar-card").classList.toggle("hidden", special);
+  document.querySelector(".summary-grid").classList.toggle("hidden", special);
+  document.querySelector(".next-music-card").classList.toggle("hidden", special);
+  document.getElementById("timelineCard").classList.toggle("hidden", special);
+
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab || (tab==="home"&&b.dataset.tab==="home")));
-  if(tab==="calendar"){
-    document.querySelector(".calendar-card").classList.remove("hidden");
-  }
+
+  if(tab==="settings") renderSettings();
 }
+
+function renderSettings(){
+  const p=shiftPresets();
+  const ids=["settingDayStart","settingDayEnd","settingHalfStart","settingHalfEnd","settingLateStart","settingLateEnd"];
+  ids.forEach(populateTimeSelect);
+  document.getElementById("settingDayStart").value=p.day.start;
+  document.getElementById("settingDayEnd").value=p.day.end;
+  document.getElementById("settingHalfStart").value=p.half.start;
+  document.getElementById("settingHalfEnd").value=p.half.end;
+  document.getElementById("settingLateStart").value=p.late.start;
+  document.getElementById("settingLateEnd").value=p.late.end;
+}
+document.getElementById("savePresetSettingsBtn").onclick=()=>{
+  const p=shiftPresets();
+  p.day.start=document.getElementById("settingDayStart").value;
+  p.day.end=document.getElementById("settingDayEnd").value;
+  p.half.start=document.getElementById("settingHalfStart").value;
+  p.half.end=document.getElementById("settingHalfEnd").value;
+  p.late.start=document.getElementById("settingLateStart").value;
+  p.late.end=document.getElementById("settingLateEnd").value;
+  saveState();
+  document.getElementById("backupStatus").textContent="勤務プリセットを保存しました。";
+};
+
+function exportData(){
+  const payload={
+    app:"with.fam",
+    schemaVersion:1,
+    exportedAt:new Date().toISOString(),
+    data:state
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const now=new Date();
+  const stamp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+  a.href=url;
+  a.download=`with-fam-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  document.getElementById("backupStatus").textContent="EXPORTしました。Filesアプリなどに保存してください。";
+}
+document.getElementById("exportBtn").onclick=exportData;
+
+document.getElementById("importFile").addEventListener("change",async(e)=>{
+  const file=e.target.files?.[0];
+  if(!file) return;
+  const status=document.getElementById("backupStatus");
+  try{
+    const text=await file.text();
+    const parsed=JSON.parse(text);
+    const imported=parsed?.app==="with.fam" ? parsed.data : parsed;
+    if(!imported || !Array.isArray(imported.members) || !Array.isArray(imported.events) || typeof imported.life!=="object"){
+      throw new Error("形式が違います");
+    }
+    if(!confirm("現在のwith.famデータをIMPORTした内容に置き換えます。よろしいですか？")) return;
+    state={...structuredClone(seed),...imported};
+    migrateEventTimes();
+    saveState();
+    cursor=startOfMonth(new Date());
+    selectedFilter="all";
+    timelineDate=dateKey(new Date());
+    renderAll();
+    renderSettings();
+    status.textContent="IMPORT完了。別端末のデータを読み込みました。";
+  }catch(err){
+    status.textContent="IMPORTできませんでした。with.famのバックアップJSONか確認してください。";
+  }finally{
+    e.target.value="";
+  }
+});
+
 document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
 document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.openTab));
 
+shiftPresets();
 migrateEventTimes();
 saveState();
 renderAll();
+
+window.addEventListener("resize",()=>renderTimeline());
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));

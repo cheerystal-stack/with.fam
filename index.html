@@ -64,7 +64,11 @@
       <div class="timeline-head">
         <div>
           <div class="eyebrow">DAILY TIMELINE</div>
-          <div class="timeline-date" id="timelineDateLabel">今日</div>
+          <div class="timeline-day-nav">
+            <button type="button" class="icon-btn timeline-nav-btn" id="timelinePrevBtn" aria-label="前日">‹</button>
+            <div class="timeline-date" id="timelineDateLabel">今日</div>
+            <button type="button" class="icon-btn timeline-nav-btn" id="timelineNextBtn" aria-label="翌日">›</button>
+          </div>
         </div>
         <button class="cookie-button small" id="timelineTodayBtn">今日</button>
       </div>
@@ -110,6 +114,50 @@
         <div id="memberList" class="member-list"></div>
       </div>
     </section>
+
+    <section class="tab-panel hidden" id="settingsPanel">
+      <div class="cookie-card settings-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">SETTINGS</div>
+            <h2>設定・データ移行</h2>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>勤務プリセット</h3>
+          <p class="hint">まとめ入力・予定入力で使う時間です。</p>
+          <div class="preset-settings" id="presetSettings">
+            <div class="preset-setting-row">
+              <strong>日勤</strong>
+              <select id="settingDayStart"></select><span>→</span><select id="settingDayEnd"></select>
+            </div>
+            <div class="preset-setting-row">
+              <strong>半日</strong>
+              <select id="settingHalfStart"></select><span>→</span><select id="settingHalfEnd"></select>
+            </div>
+            <div class="preset-setting-row">
+              <strong>遅番</strong>
+              <select id="settingLateStart"></select><span>→</span><select id="settingLateEnd"></select>
+            </div>
+          </div>
+          <button type="button" class="cookie-button small" id="savePresetSettingsBtn">勤務時間を保存</button>
+        </div>
+
+        <div class="settings-section">
+          <h3>iPhone / iPad データ移行</h3>
+          <p class="hint">今は端末ごとに保存されています。EXPORTしたJSONを別端末でIMPORTすると同じデータを移せます。</p>
+          <div class="backup-actions">
+            <button type="button" class="cookie-button" id="exportBtn">⬇ EXPORT</button>
+            <label class="ghost-button import-label">⬆ IMPORT
+              <input type="file" id="importFile" accept=".json,application/json" hidden />
+            </label>
+          </div>
+          <div class="backup-status" id="backupStatus" aria-live="polite"></div>
+          <div class="future-note">☁️ 将来：Firebaseで家族リアルタイム共有予定</div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <button class="fab" id="quickAdd" aria-label="予定を追加">＋</button>
@@ -119,6 +167,7 @@
     <button class="nav-btn" data-tab="calendar">📅<span>CALENDAR</span></button>
     <button class="nav-btn" data-tab="music">🎼<span>MUSIC</span></button>
     <button class="nav-btn" data-tab="members">👨‍👩‍👧‍👦<span>FAMILY</span></button>
+    <button class="nav-btn" data-tab="settings">⚙️<span>SETTINGS</span></button>
   </nav>
 
   <dialog id="dayDialog" class="sheet">
@@ -180,7 +229,8 @@
         </label>
       </div>
 
-      <div class="life-block">
+      <button type="button" class="life-expand-btn" id="lifeExpandBtn">＋ 食事・生活情報を追加</button>
+      <div class="life-block hidden" id="lifeBlock">
         <div class="life-title">生活</div>
         <div class="toggle-row">
           <span>🍚 夕飯</span>
@@ -218,7 +268,11 @@
         <button class="icon-btn" value="cancel">×</button>
       </div>
 
-      <p class="hint">同じ予定を入れたい日をタップして選択。</p>
+      <p class="hint">予定を選んで、入れたい日をカレンダー上でポンポン選択。</p>
+      <div class="bulk-month-label" id="bulkMonthLabel"></div>
+      <div class="bulk-weekdays">
+        <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
+      </div>
       <div id="bulkDateGrid" class="bulk-date-grid"></div>
 
       <div class="form-grid">

@@ -1,6 +1,12 @@
 
 const STORAGE_KEY = "familySkyCalendarV01";
 
+const STAMP_MASTER = [{"id": "music", "name": "音符", "category": "音楽", "image": "assets/stamps/music.png"}, {"id": "treble", "name": "ト音記号", "category": "音楽", "image": "assets/stamps/treble.png"}, {"id": "horn", "name": "ホルン", "category": "音楽", "image": "assets/stamps/horn.png"}, {"id": "violin", "name": "バイオリン", "category": "音楽", "image": "assets/stamps/violin.png"}, {"id": "musicstand", "name": "譜面台", "category": "音楽", "image": "assets/stamps/musicstand.png"}, {"id": "microphone", "name": "マイク", "category": "音楽", "image": "assets/stamps/microphone.png"}, {"id": "book", "name": "本", "category": "音楽", "image": "assets/stamps/book.png"}, {"id": "stethoscope", "name": "聴診器", "category": "医療", "image": "assets/stamps/stethoscope.png"}, {"id": "syringe", "name": "注射", "category": "医療", "image": "assets/stamps/syringe.png"}, {"id": "medical_box", "name": "救急箱", "category": "医療", "image": "assets/stamps/medical_box.png"}, {"id": "nurse", "name": "ナース", "category": "医療", "image": "assets/stamps/nurse.png"}, {"id": "hospital", "name": "病院", "category": "医療", "image": "assets/stamps/hospital.png"}, {"id": "onigiri", "name": "おにぎり", "category": "食事", "image": "assets/stamps/onigiri.png"}, {"id": "bento", "name": "お弁当", "category": "食事", "image": "assets/stamps/bento.png"}, {"id": "cutlery", "name": "外食", "category": "食事", "image": "assets/stamps/cutlery.png"}, {"id": "coffee", "name": "カフェ", "category": "食事", "image": "assets/stamps/coffee.png"}, {"id": "tapioca", "name": "ドリンク", "category": "食事", "image": "assets/stamps/tapioca.png"}, {"id": "beer", "name": "飲み会", "category": "食事", "image": "assets/stamps/beer.png"}, {"id": "cake", "name": "ケーキ", "category": "おやつ", "image": "assets/stamps/cake.png"}, {"id": "donut", "name": "ドーナツ", "category": "おやつ", "image": "assets/stamps/donut.png"}, {"id": "popcorn", "name": "映画", "category": "おやつ", "image": "assets/stamps/popcorn.png"}, {"id": "icecream", "name": "アイス", "category": "おやつ", "image": "assets/stamps/icecream.png"}, {"id": "candy", "name": "キャンディ", "category": "おやつ", "image": "assets/stamps/candy.png"}, {"id": "lollipop", "name": "ロリポップ", "category": "おやつ", "image": "assets/stamps/lollipop.png"}, {"id": "cupcake", "name": "カップケーキ", "category": "おやつ", "image": "assets/stamps/cupcake.png"}, {"id": "macaron", "name": "マカロン", "category": "おやつ", "image": "assets/stamps/macaron.png"}, {"id": "choco_strawberry", "name": "いちごチョコ", "category": "おやつ", "image": "assets/stamps/choco_strawberry.png"}, {"id": "pudding", "name": "プリン", "category": "おやつ", "image": "assets/stamps/pudding.png"}, {"id": "watermelon", "name": "スイカ", "category": "おやつ", "image": "assets/stamps/watermelon.png"}, {"id": "car", "name": "車", "category": "移動", "image": "assets/stamps/car.png"}, {"id": "train", "name": "電車", "category": "移動", "image": "assets/stamps/train.png"}, {"id": "airplane", "name": "飛行機", "category": "移動", "image": "assets/stamps/airplane.png"}, {"id": "suitcase", "name": "旅行", "category": "移動", "image": "assets/stamps/suitcase.png"}, {"id": "house", "name": "家", "category": "生活", "image": "assets/stamps/house.png"}, {"id": "bed", "name": "お泊まり", "category": "生活", "image": "assets/stamps/bed.png"}, {"id": "pencil", "name": "鉛筆", "category": "生活", "image": "assets/stamps/pencil.png"}, {"id": "camera", "name": "カメラ", "category": "生活", "image": "assets/stamps/camera.png"}, {"id": "moneybag", "name": "給料日", "category": "生活", "image": "assets/stamps/moneybag.png"}, {"id": "rainbow", "name": "虹", "category": "イベント", "image": "assets/stamps/rainbow.png"}, {"id": "heart", "name": "ハート", "category": "イベント", "image": "assets/stamps/heart.png"}, {"id": "star", "name": "星", "category": "イベント", "image": "assets/stamps/star.png"}, {"id": "gift", "name": "プレゼント", "category": "イベント", "image": "assets/stamps/gift.png"}, {"id": "balloons", "name": "風船", "category": "イベント", "image": "assets/stamps/balloons.png"}, {"id": "birthday_cake", "name": "誕生日", "category": "イベント", "image": "assets/stamps/birthday_cake.png"}, {"id": "sakura", "name": "桜", "category": "イベント", "image": "assets/stamps/sakura.png"}];
+const STAMP_BY_ID = Object.fromEntries(STAMP_MASTER.map(s=>[s.id,s]));
+const LEGACY_STAMP_MAP={"♪":"music","★":"star","♥":"heart","●":"star"};
+const MAX_STAMPS=3;
+
+
 const seed = {
   members: [
     {id:"chiaki", name:"ちあき", color:"#f4a8c6", living:"home", dinner:true, lunch:false},
@@ -28,6 +34,8 @@ let editingEventId = null;
 let editingMemberId = null;
 let timelineDate = dateKey(new Date());
 let lifeExpanded = false;
+let selectedStampIds=[];
+let activeStampCategory="すべて";
 
 const DEFAULT_SHIFT_PRESETS = {
   day:{title:"日勤",start:"08:30",end:"17:15"},
@@ -96,6 +104,10 @@ function populateTimeSelect(id){
 }
 function migrateEventTimes(){
   state.events.forEach(e=>{
+    if(!Array.isArray(e.stampIds)){
+      const legacy=e.stamp && LEGACY_STAMP_MAP[e.stamp] ? [LEGACY_STAMP_MAP[e.stamp]] : [];
+      e.stampIds=legacy;
+    }
     if((!e.startTime && !e.endTime) && e.time){
       const m=String(e.time).match(/(\d{1,2}:\d{2})\s*[-–〜~]\s*(\d{1,2}:\d{2})/);
       if(m){
@@ -196,18 +208,20 @@ function renderCalendar(){
       pill.style.background=mix(color,.66);
       pill.style.color="#315d76";
       const who=(e.memberIds?.length>1) ? e.memberIds.map(id=>memberById(id)?.name).filter(Boolean).join("・") : (m?.name||"");
-      pill.innerHTML=`<span class="event-who">${who ? esc(who)+" " : ""}</span><span class="event-title">${e.category==="音楽"?"🎼 ":""}${esc(e.title||e.category)}</span>`;
+      pill.innerHTML=`<span class="event-who">${who ? esc(who)+" " : ""}</span><span class="event-title">${esc(monthTitle(e))}</span>`;
       cell.appendChild(pill);
     });
-    const stamps=[...new Set(events.map(e=>e.stamp || (e.category==="音楽"?"♪":"")).filter(Boolean))];
-    if(stamps.length){
+    const stampIds=[...new Set(events.flatMap(e=>Array.isArray(e.stampIds)?e.stampIds:[]))].filter(id=>STAMP_BY_ID[id]);
+    if(stampIds.length){
       const stampWrap=document.createElement("div");
       stampWrap.className="day-stamps";
-      stamps.slice(0,2).forEach(s=>{
-        const span=document.createElement("span");
-        span.className="day-stamp";
-        span.textContent=s;
-        stampWrap.appendChild(span);
+      stampIds.slice(0,3).forEach(id=>{
+        const stamp=STAMP_BY_ID[id];
+        const img=document.createElement("img");
+        img.className="day-stamp-img";
+        img.src=stamp.image;
+        img.alt="";
+        stampWrap.appendChild(img);
       });
       cell.appendChild(stampWrap);
     }
@@ -303,7 +317,8 @@ function openDay(key){
   setTimePair("event","","");
   document.getElementById("eventPlace").value="";
   document.getElementById("eventMemo").value="";
-  document.getElementById("eventStamp").value="";
+  selectedStampIds=[];
+  renderSelectedStampPreview();
   timelineDate=key; renderTimeline();
   document.getElementById("eventCategory").value="仕事";
   document.getElementById("saveEventBtn").textContent="保存";
@@ -323,7 +338,9 @@ function renderExisting(){
   host.innerHTML=events.map(e=>{
     const names=e.memberIds?.length ? e.memberIds.map(id=>memberById(id)?.name).filter(Boolean).join("・") : memberById(e.memberId)?.name;
     return `<div class="existing-item">
-      <div class="existing-copy"><strong>${esc(names||"")}｜${esc(e.title||e.category)}</strong>${esc(timeText(e))}</div>
+      <div class="existing-copy"><strong>${esc(names||"")}｜${esc(e.title||e.category)}</strong>${esc(timeText(e))}
+        ${Array.isArray(e.stampIds)&&e.stampIds.length?`<div class="existing-stamps">${e.stampIds.filter(id=>STAMP_BY_ID[id]).map(id=>`<img src="${STAMP_BY_ID[id].image}" alt="${esc(STAMP_BY_ID[id].name)}">`).join("")}</div>`:""}
+      </div>
       <div class="existing-actions">
         <button type="button" class="edit-btn" data-edit="${e.id}">編集</button>
         <button type="button" class="delete-btn" data-delete="${e.id}">削除</button>
@@ -358,10 +375,53 @@ function startEditEvent(id){
   setTimePair("event",e.startTime||"",e.endTime||"");
   document.getElementById("eventPlace").value=e.place || "";
   document.getElementById("eventMemo").value=e.memo || "";
-  document.getElementById("eventStamp").value=e.stamp || "";
+  selectedStampIds=[...(e.stampIds||[])].slice(0,MAX_STAMPS);
+  renderSelectedStampPreview();
   document.getElementById("saveEventBtn").textContent="変更を保存";
   loadLifeChoices(memberId);
 }
+
+
+function renderSelectedStampPreview(){
+  const host=document.getElementById("selectedStampPreview");
+  const ph=document.getElementById("stampPickerPlaceholder");
+  if(!host||!ph) return;
+  host.innerHTML=selectedStampIds.filter(id=>STAMP_BY_ID[id]).map(id=>{
+    const s=STAMP_BY_ID[id];
+    return `<img src="${s.image}" alt="${esc(s.name)}" title="${esc(s.name)}">`;
+  }).join("");
+  ph.textContent=selectedStampIds.length?"変更する":"🍪 スタンプを選ぶ";
+}
+function stampCategories(){
+  return ["すべて",...new Set(STAMP_MASTER.map(s=>s.category))];
+}
+function renderStampPicker(){
+  const tabs=document.getElementById("stampCategoryTabs");
+  const grid=document.getElementById("stampGrid");
+  const count=document.getElementById("stampCount");
+  if(!tabs||!grid) return;
+  tabs.innerHTML=stampCategories().map(cat=>`<button type="button" class="stamp-category-tab ${cat===activeStampCategory?"active":""}" data-stamp-cat="${esc(cat)}">${esc(cat)}</button>`).join("");
+  tabs.querySelectorAll("[data-stamp-cat]").forEach(b=>b.onclick=()=>{activeStampCategory=b.dataset.stampCat;renderStampPicker();});
+  const list=activeStampCategory==="すべて"?STAMP_MASTER:STAMP_MASTER.filter(s=>s.category===activeStampCategory);
+  grid.innerHTML=list.map(s=>`<button type="button" class="stamp-option ${selectedStampIds.includes(s.id)?"selected":""}" data-stamp-id="${s.id}" aria-label="${esc(s.name)}"><img src="${s.image}" alt=""><span>${esc(s.name)}</span></button>`).join("");
+  grid.querySelectorAll("[data-stamp-id]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.stampId;
+    if(selectedStampIds.includes(id)) selectedStampIds=selectedStampIds.filter(x=>x!==id);
+    else if(selectedStampIds.length<MAX_STAMPS) selectedStampIds=[...selectedStampIds,id];
+    renderStampPicker();
+  });
+  count.textContent=`${selectedStampIds.length} / ${MAX_STAMPS}`;
+}
+document.getElementById("openStampPickerBtn").onclick=()=>{
+  activeStampCategory="すべて";
+  renderStampPicker();
+  document.getElementById("stampDialog").showModal();
+};
+document.getElementById("clearStampsBtn").onclick=()=>{selectedStampIds=[];renderStampPicker();};
+document.getElementById("doneStampsBtn").onclick=()=>{
+  document.getElementById("stampDialog").close();
+  renderSelectedStampPreview();
+};
 
 function updateSegments(){
   document.querySelectorAll("#dinnerSegments button").forEach(b=>b.classList.toggle("active",b.dataset.value===dinnerChoice));
@@ -388,7 +448,7 @@ document.getElementById("saveEventBtn").onclick=()=>{
     time:"",
     place:document.getElementById("eventPlace").value.trim(),
     memo:document.getElementById("eventMemo").value.trim(),
-    stamp:document.getElementById("eventStamp").value
+    stampIds:[...selectedStampIds]
   };
 
   if(editingEventId){
@@ -478,7 +538,7 @@ document.getElementById("saveMusicBtn").onclick=()=>{
   const date=document.getElementById("musicDate").value;
   if(!date) return;
   state.events.push({
-    id:crypto.randomUUID(), date, category:"音楽", groupId, stamp:"♪",
+    id:crypto.randomUUID(), date, category:"音楽", groupId,
     memberIds:[...(group?.members||[])],
     title:document.getElementById("musicTitle").value.trim() || document.getElementById("musicType").value,
     musicType:document.getElementById("musicType").value,
@@ -729,6 +789,7 @@ document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>openTab(b.
 shiftPresets();
 migrateEventTimes();
 saveState();
+renderSelectedStampPreview();
 renderAll();
 
 window.addEventListener("resize",()=>renderTimeline());

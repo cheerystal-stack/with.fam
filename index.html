@@ -230,15 +230,14 @@
         <label class="wide">メモ
           <input id="eventMemo" placeholder="任意" />
         </label>
-        <label>スタンプ
-          <select id="eventStamp">
-            <option value="">なし</option>
-            <option value="♪">♪ 音楽</option>
-            <option value="★">★ 大事</option>
-            <option value="●">● イベント</option>
-            <option value="♥">♥ プライベート</option>
-          </select>
-        </label>
+        <div class="wide stamp-field">
+          <div class="form-label">スタンプ</div>
+          <button type="button" class="stamp-picker-open" id="openStampPickerBtn">
+            <span id="selectedStampPreview" class="selected-stamp-preview"></span>
+            <span id="stampPickerPlaceholder">🍪 スタンプを選ぶ</span>
+          </button>
+          <div class="stamp-help">最大3個まで。予定の文字とは別にカレンダーへ表示します。</div>
+        </div>
       </div>
 
       <button type="button" class="life-expand-btn" id="lifeExpandBtn">＋ 食事・生活情報を追加</button>
@@ -265,6 +264,27 @@
       <div class="sheet-actions">
         <button type="button" class="ghost-button" id="bulkBtn">まとめ入力</button>
         <button type="button" class="cookie-button" id="saveEventBtn">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+
+  <dialog id="stampDialog" class="sheet stamp-sheet">
+    <form method="dialog" class="sheet-inner">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">COOKIE STAMPS</div>
+          <h2>スタンプを選ぶ</h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+      <div class="stamp-category-tabs" id="stampCategoryTabs"></div>
+      <div class="stamp-grid" id="stampGrid"></div>
+      <div class="stamp-picker-footer">
+        <button type="button" class="ghost-button" id="clearStampsBtn">なしにする</button>
+        <div class="stamp-count" id="stampCount">0 / 3</div>
+        <button type="button" class="cookie-button" id="doneStampsBtn">決定</button>
       </div>
     </form>
   </dialog>

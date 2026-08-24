@@ -494,3 +494,21 @@ body{
   .stamp-option{min-height:82px}
   .stamp-option img{width:54px;height:54px}
 }
+
+
+/* v0.3.6 — portrait phone: always fit all 3 calendar stamps */
+@media (max-width:500px) and (orientation:portrait){
+  .day-stamps{
+    left:2px;
+    right:2px;
+    bottom:4px;
+    gap:0;
+    justify-content:space-between;
+    overflow:visible;
+  }
+  .day-stamp-img{
+    width:clamp(14px,4.1vw,18px);
+    height:clamp(14px,4.1vw,18px);
+    flex:0 0 auto;
+  }
+}

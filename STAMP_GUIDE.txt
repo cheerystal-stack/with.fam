@@ -1,0 +1,39 @@
+WITH.FAM スタンプ編集ガイド
+
+【？になる主な原因】
+app.js の STAMP_MASTER に書かれた画像ファイル名と、
+assets/stamps/ 内のPNG名が一致していない時に起こります。
+今回、実在PNGと名前がズレていたものは修正済みです。
+
+【スタンプ名を変える】
+app.js の先頭にある STAMP_MASTER を編集します。
+
+例：
+{"id":"horn","name":"ホルン","category":"音楽","image":"assets/stamps/horn.png"}
+
+id：内部ID。過去データが使うので、一度使ったら変更しない。
+name：画面に出る名前。自由に変更OK。
+category：分類名。変更するとそのカテゴリへ移動。
+image：PNGのファイル名。assets/stamps/内と完全一致させる。
+
+【新しいスタンプを追加】
+例：piano.png を増やす場合
+1. assets/stamps/piano.png をアップロード
+2. STAMP_MASTER に追加：
+{"id":"piano","name":"ピアノ","category":"音楽","image":"assets/stamps/piano.png"}
+
+新しい category 名を書けばカテゴリタブも自動追加されます。
+
+【命名ルール】
+・PNG名は半角英数字＋アンダースコア推奨
+・大文字小文字まで一致させる
+・id は重複禁止
+・使用済み id は変更しない
+・name は後から変更してOK
+
+【今回のキャッシュ対策 v0.3.4】
+・起動時にService Worker更新確認
+・古いキャッシュを自動削除
+・オンライン時はGitHub上の最新版を優先取得
+・オフライン時だけキャッシュを利用
+・新Service Workerへ切替時に一度だけ自動リロード

@@ -1,31 +1,8 @@
-const CACHE="with-fam-v0.3.4";
-self.addEventListener("install",event=>{
-  self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll([
-    "./","./index.html","./style.css","./app.js","./manifest.webmanifest","./sky-bg.png"
-  ])));
-});
-self.addEventListener("activate",event=>{
-  event.waitUntil((async()=>{
-    const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
-    await self.clients.claim();
-  })());
-});
-self.addEventListener("fetch",event=>{
-  if(event.request.method!=="GET") return;
-  event.respondWith((async()=>{
-    try{
-      const fresh=await fetch(event.request,{cache:"no-store"});
-      if(fresh && fresh.ok){
-        const cache=await caches.open(CACHE);
-        cache.put(event.request,fresh.clone());
-      }
-      return fresh;
-    }catch(err){
-      const cached=await caches.match(event.request);
-      if(cached) return cached;
-      throw err;
-    }
-  })());
-});
+
+const CACHE="with-fam-v0.3.5";
+const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.webmanifest","./sky-bg.png","./assets/stamps/rainbow.png","./assets/stamps/heart.png","./assets/stamps/star.png","./assets/stamps/music.png","./assets/stamps/treble.png","./assets/stamps/book.png","./assets/stamps/pencil.png","./assets/stamps/stethoscope.png","./assets/stamps/syringe.png","./assets/stamps/medical_box.png","./assets/stamps/nurse.png","./assets/stamps/hospital.png","./assets/stamps/coffee.png","./assets/stamps/tapioca.png","./assets/stamps/beer.png","./assets/stamps/moneybag.png","./assets/stamps/onigiri.png","./assets/stamps/bento.png","./assets/stamps/cutlery.png","./assets/stamps/cake.png","./assets/stamps/donut.png","./assets/stamps/popcorn.png","./assets/stamps/icecream.png","./assets/stamps/candy.png","./assets/stamps/lollipop.png","./assets/stamps/cupcake.png","./assets/stamps/macaron.png","./assets/stamps/choco_strawberry.png","./assets/stamps/pudding.png","./assets/stamps/watermelon.png","./assets/stamps/car.png","./assets/stamps/train.png","./assets/stamps/airplane.png","./assets/stamps/suitcase.png","./assets/stamps/house.png","./assets/stamps/bed.png","./assets/stamps/gift.png","./assets/stamps/balloons.png","./assets/stamps/birthday_cake.png","./assets/stamps/sakura.png","./assets/stamps/camera.png","./assets/stamps/horn.png","./assets/stamps/violin.png","./assets/stamps/musicstand.png","./assets/stamps/microphone.png"];
+self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener("activate",e=>e.waitUntil(
+  caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+));
+self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));

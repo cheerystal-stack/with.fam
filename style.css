@@ -524,24 +524,24 @@ body{
   padding:3px 0 10px;
 }
 
-/* Portrait phone calendar: keep up to 3 stamps centered safely inside the cell. */
+/* v0.3.9 — portrait phone calendar: restore readable stamp size. */
 @media (max-width:500px) and (orientation:portrait){
   .day-cell .day-stamps{
     left:3px;
     right:3px;
     bottom:5px;
     width:auto;
-    height:22px;
+    height:28px;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:2px;
-    overflow:hidden;
+    overflow:visible;
   }
   .day-cell .day-stamp-img{
-    width:min(18px, calc((100% - 4px) / 3));
-    height:min(18px, calc((100% - 4px) / 3));
-    flex:0 1 18px;
+    width:24px;
+    height:24px;
+    flex:0 0 24px;
     min-width:0;
     object-fit:contain;
   }

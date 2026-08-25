@@ -34,17 +34,16 @@
       <button class="cookie-button small" id="todayBtn">TODAY</button>
     </header>
 
-    <section class="summary-grid">
-      <article class="cookie-card summary-card">
-        <div class="summary-title"><img class="meal-title-icon" src="assets/stamps/dinner.png" alt=""> TONIGHT</div>
-        <div class="summary-value" id="dinnerCount">—</div>
-        <div class="summary-sub" id="dinnerDetail">夕飯の人数</div>
-      </article>
-      <article class="cookie-card summary-card">
-        <div class="summary-title"><img class="meal-title-icon" src="assets/stamps/bento.png" alt=""> TOMORROW</div>
-        <div class="summary-value" id="lunchCount">—</div>
-        <div class="summary-sub" id="lunchDetail">お弁当の数</div>
-      </article>
+    <section class="cookie-card weekly-meals" aria-label="週間の食事予定">
+      <div class="weekly-meals-head">
+        <button type="button" class="meal-week-nav" id="prevMealWeek" aria-label="前の週">‹</button>
+        <div>
+          <div class="eyebrow">WEEKLY MEALS</div>
+          <div class="weekly-meals-range" id="weeklyMealsRange"></div>
+        </div>
+        <button type="button" class="meal-week-nav" id="nextMealWeek" aria-label="次の週">›</button>
+      </div>
+      <div class="weekly-meals-grid" id="weeklyMealsGrid"></div>
     </section>
 
     <section class="cookie-card calendar-card">
@@ -56,18 +55,6 @@
         </div>
         <button class="icon-btn" id="nextMonth" aria-label="次の月">›</button>
       </div>
-
-      <section class="weekly-meals" aria-label="週間の食事予定">
-        <div class="weekly-meals-head">
-          <button type="button" class="meal-week-nav" id="prevMealWeek" aria-label="前の週">‹</button>
-          <div>
-            <div class="eyebrow">WEEKLY MEALS</div>
-            <div class="weekly-meals-range" id="weeklyMealsRange"></div>
-          </div>
-          <button type="button" class="meal-week-nav" id="nextMealWeek" aria-label="次の週">›</button>
-        </div>
-        <div class="weekly-meals-grid" id="weeklyMealsGrid"></div>
-      </section>
 
       <div class="weekdays">
         <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
@@ -451,6 +438,6 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=0.4.0"></script>
+  <script src="app.js?v=0.4.1"></script>
 </body>
 </html>

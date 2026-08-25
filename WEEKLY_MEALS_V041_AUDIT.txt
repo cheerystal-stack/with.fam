@@ -1,0 +1,7 @@
+with.fam v0.4.1
+- WEEKLY MEALS moved outside the monthly calendar, directly below the FAMILY hero.
+- TONIGHT / TOMORROW large summary cards removed.
+- Chiaki included in lunch/bento eligibility, including existing saved member data.
+- WEEKLY MEALS is rendered during renderAll on initial app render.
+- STAMP_MASTER verified unchanged from v0.4.0.
+- dinner.png and bento.png paths unchanged.

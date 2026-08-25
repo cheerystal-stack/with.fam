@@ -280,7 +280,7 @@ const MAX_STAMPS=3;
 
 const seed = {
   members: [
-    {id:"chiaki", name:"ちあき", color:"#f4a8c6", living:"home", dinner:true, lunch:false},
+    {id:"chiaki", name:"ちあき", color:"#f4a8c6", living:"home", dinner:true, lunch:true},
     {id:"sora", name:"そら", color:"#f4cf72", living:"away", dinner:false, lunch:false},
     {id:"ao", name:"あお", color:"#9ed8b5", living:"home", dinner:true, lunch:true},
     {id:"towa", name:"とわ", color:"#91ccef", living:"home", dinner:true, lunch:true}
@@ -295,6 +295,9 @@ const seed = {
 };
 
 let state = loadState();
+// v0.4.1: ちあきもお弁当カウント対象にする（既存保存データも更新）
+const chiakiMealMember = state.members?.find(m=>m.id==="chiaki");
+if(chiakiMealMember) chiakiMealMember.lunch = true;
 let cursor = startOfMonth(new Date());
 let selectedFilter = "all";
 let selectedDate = dateKey(new Date());
@@ -420,7 +423,6 @@ function renderAll(){
   renderFilters();
   renderCalendar();
   renderWeeklyMeals();
-  renderSummary();
   renderNextMusic();
   renderMusic();
   renderMembers();
@@ -607,7 +609,6 @@ function saveMealEditor(){
   saveState();
   document.getElementById("mealDialog").close();
   renderWeeklyMeals();
-  renderSummary();
 }
 function renderSummary(){
   const today=dateKey(new Date());

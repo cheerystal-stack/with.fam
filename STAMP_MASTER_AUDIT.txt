@@ -1,0 +1,6 @@
+STAMP_MASTER semantic equality: PASS
+Entry count: 45
+Names/IDs/categories/image paths/order: unchanged
+Only whitespace/indentation changed inside STAMP_MASTER.
+UI fixes: category tabs wrap; portrait calendar stamps centered.
+Cache fix: service worker cache bumped and stale/nonexistent asset list repaired.

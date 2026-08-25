@@ -1,7 +1,278 @@
 
 const STORAGE_KEY = "familySkyCalendarV01";
 
-const STAMP_MASTER = [{"id": "music", "name": "音符", "category": "音楽", "image": "assets/stamps/music_note.png"}, {"id": "treble", "name": "ト音記号", "category": "音楽", "image": "assets/stamps/treble_clef.png"}, {"id": "horn", "name": "ホルン", "category": "音楽", "image": "assets/stamps/horn.png"}, {"id": "violin", "name": "バイオリン", "category": "音楽", "image": "assets/stamps/violin.png"}, {"id": "musicstand", "name": "譜面台", "category": "音楽", "image": "assets/stamps/music_stand.png"}, {"id": "microphone", "name": "マイク", "category": "音楽", "image": "assets/stamps/microphone.png"}, {"id": "book", "name": "本", "category": "音楽", "image": "assets/stamps/book.png"}, {"id": "stethoscope", "name": "聴診器", "category": "医療", "image": "assets/stamps/stethoscope.png"}, {"id": "syringe", "name": "注射", "category": "医療", "image": "assets/stamps/syringe.png"}, {"id": "medical_box", "name": "救急箱", "category": "医療", "image": "assets/stamps/medical_bag.png"}, {"id": "nurse", "name": "ナース", "category": "医療", "image": "assets/stamps/nurse_cap.png"}, {"id": "hospital", "name": "病院", "category": "医療", "image": "assets/stamps/hospital.png"}, {"id": "onigiri", "name": "おにぎり", "category": "食事", "image": "assets/stamps/onigiri.png"}, {"id": "bento", "name": "お弁当", "category": "食事", "image": "assets/stamps/bento.png"}, {"id": "cutlery", "name": "外食", "category": "食事", "image": "assets/stamps/cutlery.png"}, {"id": "coffee", "name": "カフェ", "category": "食事", "image": "assets/stamps/coffee.png"}, {"id": "tapioca", "name": "ドリンク", "category": "食事", "image": "assets/stamps/bubble_tea.png"}, {"id": "beer", "name": "飲み会", "category": "食事", "image": "assets/stamps/beer.png"}, {"id": "cake", "name": "ケーキ", "category": "おやつ", "image": "assets/stamps/cake_slice.png"}, {"id": "donut", "name": "ドーナツ", "category": "おやつ", "image": "assets/stamps/donut.png"}, {"id": "popcorn", "name": "映画", "category": "おやつ", "image": "assets/stamps/popcorn.png"}, {"id": "icecream", "name": "アイス", "category": "おやつ", "image": "assets/stamps/icecream.png"}, {"id": "candy", "name": "キャンディ", "category": "おやつ", "image": "assets/stamps/candy.png"}, {"id": "lollipop", "name": "ロリポップ", "category": "おやつ", "image": "assets/stamps/lollipop.png"}, {"id": "cupcake", "name": "カップケーキ", "category": "おやつ", "image": "assets/stamps/cupcake.png"}, {"id": "macaron", "name": "マカロン", "category": "おやつ", "image": "assets/stamps/macaron.png"}, {"id": "choco_strawberry", "name": "いちごチョコ", "category": "おやつ", "image": "assets/stamps/choco_strawberry.png"}, {"id": "pudding", "name": "プリン", "category": "おやつ", "image": "assets/stamps/pudding.png"}, {"id": "watermelon", "name": "スイカ", "category": "おやつ", "image": "assets/stamps/watermelon.png"}, {"id": "car", "name": "車", "category": "移動", "image": "assets/stamps/car.png"}, {"id": "train", "name": "電車", "category": "移動", "image": "assets/stamps/train.png"}, {"id": "airplane", "name": "飛行機", "category": "移動", "image": "assets/stamps/airplane.png"}, {"id": "suitcase", "name": "旅行", "category": "移動", "image": "assets/stamps/suitcase.png"}, {"id": "house", "name": "家", "category": "生活", "image": "assets/stamps/house.png"}, {"id": "bed", "name": "お泊まり", "category": "生活", "image": "assets/stamps/bed.png"}, {"id": "pencil", "name": "鉛筆", "category": "生活", "image": "assets/stamps/pencil.png"}, {"id": "camera", "name": "カメラ", "category": "生活", "image": "assets/stamps/camera.png"}, {"id": "moneybag", "name": "給料日", "category": "生活", "image": "assets/stamps/moneybag.png"}, {"id": "rainbow", "name": "虹", "category": "イベント", "image": "assets/stamps/rainbow.png"}, {"id": "heart", "name": "ハート", "category": "イベント", "image": "assets/stamps/heart.png"}, {"id": "star", "name": "星", "category": "イベント", "image": "assets/stamps/star.png"}, {"id": "gift", "name": "プレゼント", "category": "イベント", "image": "assets/stamps/gift.png"}, {"id": "balloons", "name": "風船", "category": "イベント", "image": "assets/stamps/balloons.png"}, {"id": "birthday_cake", "name": "誕生日", "category": "イベント", "image": "assets/stamps/birthday_cake.png"}, {"id": "sakura", "name": "桜", "category": "イベント", "image": "assets/stamps/sakura.png"}]
+const STAMP_MASTER = [
+  {
+    "id": "music",
+    "name": "音符",
+    "category": "音楽",
+    "image": "assets/stamps/music_note.png"
+  },
+  {
+    "id": "treble",
+    "name": "ト音記号",
+    "category": "音楽",
+    "image": "assets/stamps/treble_clef.png"
+  },
+  {
+    "id": "horn",
+    "name": "ホルン",
+    "category": "音楽",
+    "image": "assets/stamps/horn.png"
+  },
+  {
+    "id": "violin",
+    "name": "バイオリン",
+    "category": "音楽",
+    "image": "assets/stamps/violin.png"
+  },
+  {
+    "id": "musicstand",
+    "name": "譜面台",
+    "category": "音楽",
+    "image": "assets/stamps/music_stand.png"
+  },
+  {
+    "id": "microphone",
+    "name": "マイク",
+    "category": "音楽",
+    "image": "assets/stamps/microphone.png"
+  },
+  {
+    "id": "book",
+    "name": "本",
+    "category": "音楽",
+    "image": "assets/stamps/book.png"
+  },
+  {
+    "id": "stethoscope",
+    "name": "聴診器",
+    "category": "医療",
+    "image": "assets/stamps/stethoscope.png"
+  },
+  {
+    "id": "syringe",
+    "name": "注射",
+    "category": "医療",
+    "image": "assets/stamps/syringe.png"
+  },
+  {
+    "id": "medical_box",
+    "name": "救急箱",
+    "category": "医療",
+    "image": "assets/stamps/medical_bag.png"
+  },
+  {
+    "id": "nurse",
+    "name": "ナース",
+    "category": "医療",
+    "image": "assets/stamps/nurse_cap.png"
+  },
+  {
+    "id": "hospital",
+    "name": "病院",
+    "category": "医療",
+    "image": "assets/stamps/hospital.png"
+  },
+  {
+    "id": "onigiri",
+    "name": "おにぎり",
+    "category": "食事",
+    "image": "assets/stamps/onigiri.png"
+  },
+  {
+    "id": "bento",
+    "name": "お弁当",
+    "category": "食事",
+    "image": "assets/stamps/bento.png"
+  },
+  {
+    "id": "cutlery",
+    "name": "外食",
+    "category": "食事",
+    "image": "assets/stamps/cutlery.png"
+  },
+  {
+    "id": "coffee",
+    "name": "カフェ",
+    "category": "食事",
+    "image": "assets/stamps/coffee.png"
+  },
+  {
+    "id": "tapioca",
+    "name": "ドリンク",
+    "category": "食事",
+    "image": "assets/stamps/bubble_tea.png"
+  },
+  {
+    "id": "beer",
+    "name": "飲み会",
+    "category": "食事",
+    "image": "assets/stamps/beer.png"
+  },
+  {
+    "id": "cake",
+    "name": "ケーキ",
+    "category": "おやつ",
+    "image": "assets/stamps/cake_slice.png"
+  },
+  {
+    "id": "donut",
+    "name": "ドーナツ",
+    "category": "おやつ",
+    "image": "assets/stamps/donut.png"
+  },
+  {
+    "id": "popcorn",
+    "name": "映画",
+    "category": "おやつ",
+    "image": "assets/stamps/popcorn.png"
+  },
+  {
+    "id": "icecream",
+    "name": "アイス",
+    "category": "おやつ",
+    "image": "assets/stamps/icecream.png"
+  },
+  {
+    "id": "candy",
+    "name": "キャンディ",
+    "category": "おやつ",
+    "image": "assets/stamps/candy.png"
+  },
+  {
+    "id": "lollipop",
+    "name": "ロリポップ",
+    "category": "おやつ",
+    "image": "assets/stamps/lollipop.png"
+  },
+  {
+    "id": "cupcake",
+    "name": "カップケーキ",
+    "category": "おやつ",
+    "image": "assets/stamps/cupcake.png"
+  },
+  {
+    "id": "macaron",
+    "name": "マカロン",
+    "category": "おやつ",
+    "image": "assets/stamps/macaron.png"
+  },
+  {
+    "id": "choco_strawberry",
+    "name": "いちごチョコ",
+    "category": "おやつ",
+    "image": "assets/stamps/choco_strawberry.png"
+  },
+  {
+    "id": "pudding",
+    "name": "プリン",
+    "category": "おやつ",
+    "image": "assets/stamps/pudding.png"
+  },
+  {
+    "id": "watermelon",
+    "name": "スイカ",
+    "category": "おやつ",
+    "image": "assets/stamps/watermelon.png"
+  },
+  {
+    "id": "car",
+    "name": "車",
+    "category": "移動",
+    "image": "assets/stamps/car.png"
+  },
+  {
+    "id": "train",
+    "name": "電車",
+    "category": "移動",
+    "image": "assets/stamps/train.png"
+  },
+  {
+    "id": "airplane",
+    "name": "飛行機",
+    "category": "移動",
+    "image": "assets/stamps/airplane.png"
+  },
+  {
+    "id": "suitcase",
+    "name": "旅行",
+    "category": "移動",
+    "image": "assets/stamps/suitcase.png"
+  },
+  {
+    "id": "house",
+    "name": "家",
+    "category": "生活",
+    "image": "assets/stamps/house.png"
+  },
+  {
+    "id": "bed",
+    "name": "お泊まり",
+    "category": "生活",
+    "image": "assets/stamps/bed.png"
+  },
+  {
+    "id": "pencil",
+    "name": "鉛筆",
+    "category": "生活",
+    "image": "assets/stamps/pencil.png"
+  },
+  {
+    "id": "camera",
+    "name": "カメラ",
+    "category": "生活",
+    "image": "assets/stamps/camera.png"
+  },
+  {
+    "id": "moneybag",
+    "name": "給料日",
+    "category": "生活",
+    "image": "assets/stamps/moneybag.png"
+  },
+  {
+    "id": "rainbow",
+    "name": "虹",
+    "category": "イベント",
+    "image": "assets/stamps/rainbow.png"
+  },
+  {
+    "id": "heart",
+    "name": "ハート",
+    "category": "イベント",
+    "image": "assets/stamps/heart.png"
+  },
+  {
+    "id": "star",
+    "name": "星",
+    "category": "イベント",
+    "image": "assets/stamps/star.png"
+  },
+  {
+    "id": "gift",
+    "name": "プレゼント",
+    "category": "イベント",
+    "image": "assets/stamps/gift.png"
+  },
+  {
+    "id": "balloons",
+    "name": "風船",
+    "category": "イベント",
+    "image": "assets/stamps/balloons.png"
+  },
+  {
+    "id": "birthday_cake",
+    "name": "誕生日",
+    "category": "イベント",
+    "image": "assets/stamps/birthday_cake.png"
+  },
+  {
+    "id": "sakura",
+    "name": "桜",
+    "category": "イベント",
+    "image": "assets/stamps/sakura.png"
+  }
+]
 const STAMP_BY_ID = Object.fromEntries(STAMP_MASTER.map(s=>[s.id,s]));
 const LEGACY_STAMP_MAP={"♪":"music","★":"star","♥":"heart","●":"star"};
 const MAX_STAMPS=3;

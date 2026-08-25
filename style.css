@@ -512,3 +512,37 @@ body{
     flex:0 0 auto;
   }
 }
+
+
+/* v0.3.8 — portrait + stamp picker fix */
+/* Category tabs: show all categories by wrapping, never a horizontal strip. */
+.stamp-category-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  overflow-x:visible;
+  gap:6px;
+  padding:3px 0 10px;
+}
+
+/* Portrait phone calendar: keep up to 3 stamps centered safely inside the cell. */
+@media (max-width:500px) and (orientation:portrait){
+  .day-cell .day-stamps{
+    left:3px;
+    right:3px;
+    bottom:5px;
+    width:auto;
+    height:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    overflow:hidden;
+  }
+  .day-cell .day-stamp-img{
+    width:min(18px, calc((100% - 4px) / 3));
+    height:min(18px, calc((100% - 4px) / 3));
+    flex:0 1 18px;
+    min-width:0;
+    object-fit:contain;
+  }
+}

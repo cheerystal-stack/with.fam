@@ -298,13 +298,12 @@ let state = loadState();
 let cursor = startOfMonth(new Date());
 let selectedFilter = "all";
 let selectedDate = dateKey(new Date());
-let dinnerChoice = "unknown";
-let lunchChoice = "unknown";
 let bulkSelected = new Set();
 let editingEventId = null;
 let editingMemberId = null;
 let timelineDate = dateKey(new Date());
-let lifeExpanded = false;
+let mealWeekDate = dateKey(new Date());
+let mealEditingDate = dateKey(new Date());
 let selectedStampIds=[];
 let activeStampCategory="すべて";
 
@@ -420,6 +419,7 @@ function applyPreset(prefix,key,titleId){
 function renderAll(){
   renderFilters();
   renderCalendar();
+  renderWeeklyMeals();
   renderSummary();
   renderNextMusic();
   renderMusic();
@@ -510,22 +510,117 @@ function renderCalendar(){
 function lifeFor(date, memberId){
   return state.life?.[date]?.[memberId] || {dinner:"unknown", lunch:"unknown"};
 }
+function mondayOf(date){
+  const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const offset=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-offset);
+  return d;
+}
+function mealEligibleMembers(kind, key){
+  return state.members.filter(m=>m[kind] && (m.living==="home" || hasReturnHome(key,m.id)));
+}
+function mealCounts(key, kind){
+  const prop=kind==="dinner"?"dinner":"lunch";
+  const members=mealEligibleMembers(prop,key);
+  return {
+    yes: members.filter(m=>lifeFor(key,m.id)[prop]==="yes").length,
+    unknown: members.filter(m=>lifeFor(key,m.id)[prop]==="unknown").length,
+    total: members.length
+  };
+}
+function renderWeeklyMeals(){
+  const grid=document.getElementById("weeklyMealsGrid");
+  const range=document.getElementById("weeklyMealsRange");
+  if(!grid||!range) return;
+  const base=mondayOf(parseKey(mealWeekDate));
+  const end=new Date(base); end.setDate(base.getDate()+6);
+  range.textContent=`${base.getMonth()+1}/${base.getDate()} – ${end.getMonth()+1}/${end.getDate()}`;
+  const dow=["月","火","水","木","金","土","日"];
+  const todayKey=dateKey(new Date());
+  grid.innerHTML="";
+  for(let i=0;i<7;i++){
+    const d=new Date(base); d.setDate(base.getDate()+i);
+    const key=dateKey(d);
+    const dinner=mealCounts(key,"dinner");
+    const lunch=mealCounts(key,"lunch");
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="weekly-meal-day"+(key===todayKey?" today":"");
+    b.innerHTML=`
+      <span class="weekly-meal-dow">${dow[i]}</span>
+      <span class="weekly-meal-date">${d.getMonth()+1}/${d.getDate()}</span>
+      <span class="weekly-meal-count"><img src="assets/stamps/dinner.png" alt="">${dinner.yes}${dinner.unknown?`<small>+${dinner.unknown}?</small>`:""}</span>
+      <span class="weekly-meal-count"><img src="assets/stamps/bento.png" alt="">${lunch.yes}${lunch.unknown?`<small>+${lunch.unknown}?</small>`:""}</span>`;
+    b.onclick=()=>openMealEditor(key);
+    grid.appendChild(b);
+  }
+}
+function mealMemberRows(kind,key){
+  const prop=kind==="dinner"?"dinner":"lunch";
+  const members=mealEligibleMembers(prop,key);
+  if(!members.length) return `<div class="hint">対象メンバーはいません。</div>`;
+  return members.map(m=>{
+    const value=lifeFor(key,m.id)[prop]||"unknown";
+    return `<div class="meal-member-row" data-meal-member="${m.id}" data-meal-kind="${prop}">
+      <div class="member-badge"><span class="member-dot" style="background:${m.color}"></span><span>${esc(m.name)}</span></div>
+      <div class="meal-choice" data-current="${value}">
+        <button type="button" data-meal-value="yes" class="${value==="yes"?"active yes":""}">必要</button>
+        <button type="button" data-meal-value="no" class="${value==="no"?"active no":""}">不要</button>
+        <button type="button" data-meal-value="unknown" class="meal-unknown ${value==="unknown"?"active":""}" aria-label="未回答">？</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function bindMealChoiceButtons(host){
+  host.querySelectorAll(".meal-choice").forEach(group=>{
+    group.querySelectorAll("[data-meal-value]").forEach(btn=>btn.onclick=()=>{
+      group.dataset.current=btn.dataset.mealValue;
+      group.querySelectorAll("[data-meal-value]").forEach(x=>{
+        x.classList.toggle("active",x===btn);
+        x.classList.toggle("yes",x===btn&&btn.dataset.mealValue==="yes");
+        x.classList.toggle("no",x===btn&&btn.dataset.mealValue==="no");
+      });
+    });
+  });
+}
+function openMealEditor(key){
+  mealEditingDate=key;
+  const d=parseKey(key);
+  document.getElementById("mealDialogTitle").textContent=`${d.getMonth()+1}/${d.getDate()} 食事予定`;
+  const dinnerHost=document.getElementById("dinnerMemberList");
+  const lunchHost=document.getElementById("lunchMemberList");
+  dinnerHost.innerHTML=mealMemberRows("dinner",key);
+  lunchHost.innerHTML=mealMemberRows("lunch",key);
+  bindMealChoiceButtons(dinnerHost);
+  bindMealChoiceButtons(lunchHost);
+  document.getElementById("mealDialog").showModal();
+}
+function saveMealEditor(){
+  state.life[mealEditingDate] ??= {};
+  document.querySelectorAll("#mealDialog [data-meal-member]").forEach(row=>{
+    const memberId=row.dataset.mealMember;
+    const kind=row.dataset.mealKind;
+    const value=row.querySelector(".meal-choice")?.dataset.current||"unknown";
+    state.life[mealEditingDate][memberId] ??= {dinner:"unknown",lunch:"unknown"};
+    state.life[mealEditingDate][memberId][kind]=value;
+  });
+  saveState();
+  document.getElementById("mealDialog").close();
+  renderWeeklyMeals();
+  renderSummary();
+}
 function renderSummary(){
   const today=dateKey(new Date());
   const tomorrowD=new Date(); tomorrowD.setDate(tomorrowD.getDate()+1);
   const tomorrow=dateKey(tomorrowD);
 
-  const dinnerMembers=state.members.filter(m=>m.dinner && (m.living==="home" || hasReturnHome(today,m.id)));
-  const dinnerYes=dinnerMembers.filter(m=>lifeFor(today,m.id).dinner==="yes").length;
-  const dinnerUnknown=dinnerMembers.filter(m=>lifeFor(today,m.id).dinner==="unknown").length;
-  document.getElementById("dinnerCount").textContent=`${dinnerYes}人`;
-  document.getElementById("dinnerDetail").textContent=dinnerUnknown?`未回答 ${dinnerUnknown}人`:"回答済み";
+  const dinner=mealCounts(today,"dinner");
+  document.getElementById("dinnerCount").textContent=`${dinner.yes}人`;
+  document.getElementById("dinnerDetail").textContent=dinner.unknown?`未回答 ${dinner.unknown}人`:"回答済み";
 
-  const lunchMembers=state.members.filter(m=>m.lunch && (m.living==="home" || hasReturnHome(tomorrow,m.id)));
-  const lunchYes=lunchMembers.filter(m=>lifeFor(tomorrow,m.id).lunch==="yes").length;
-  const lunchUnknown=lunchMembers.filter(m=>lifeFor(tomorrow,m.id).lunch==="unknown").length;
-  document.getElementById("lunchCount").textContent=`${lunchYes}個`;
-  document.getElementById("lunchDetail").textContent=lunchUnknown?`未回答 ${lunchUnknown}人`:"回答済み";
+  const lunch=mealCounts(tomorrow,"lunch");
+  document.getElementById("lunchCount").textContent=`${lunch.yes}個`;
+  document.getElementById("lunchDetail").textContent=lunch.unknown?`未回答 ${lunch.unknown}人`:"回答済み";
 }
 function hasReturnHome(date, memberId){
   return state.events.some(e=>e.date===date && (e.memberId===memberId || (e.memberIds||[]).includes(memberId)) && e.category==="帰省");
@@ -593,12 +688,6 @@ function openDay(key){
   timelineDate=key; renderTimeline();
   document.getElementById("eventCategory").value="仕事";
   document.getElementById("saveEventBtn").textContent="保存";
-  lifeExpanded=false;
-  document.getElementById("lifeBlock").classList.add("hidden");
-  document.getElementById("lifeExpandBtn").classList.remove("active");
-  document.getElementById("lifeExpandBtn").textContent="＋ 食事・生活情報を追加";
-  const memberId=document.getElementById("eventMember").value || state.members[0]?.id;
-  loadLifeChoices(memberId);
   renderExisting();
   document.getElementById("dayDialog").showModal();
 }
@@ -628,86 +717,6 @@ function renderExisting(){
   });
 }
 
-function loadLifeChoices(memberId){
-  const life=lifeFor(selectedDate, memberId);
-  dinnerChoice=life.dinner || "unknown";
-  lunchChoice=life.lunch || "unknown";
-  updateSegments();
-}
-
-function startEditEvent(id){
-  const e=state.events.find(x=>x.id===id);
-  if(!e) return;
-  editingEventId=id;
-  const memberId=e.memberId || e.memberIds?.[0] || state.members[0]?.id;
-  if(memberId) document.getElementById("eventMember").value=memberId;
-  document.getElementById("eventCategory").value=e.category || "その他";
-  document.getElementById("eventTitle").value=e.title || "";
-  setTimePair("event",e.startTime||"",e.endTime||"");
-  document.getElementById("eventPlace").value=e.place || "";
-  document.getElementById("eventMemo").value=e.memo || "";
-  selectedStampIds=[...(e.stampIds||[])].slice(0,MAX_STAMPS);
-  renderSelectedStampPreview();
-  document.getElementById("saveEventBtn").textContent="変更を保存";
-  loadLifeChoices(memberId);
-}
-
-
-function renderSelectedStampPreview(){
-  const host=document.getElementById("selectedStampPreview");
-  const ph=document.getElementById("stampPickerPlaceholder");
-  if(!host||!ph) return;
-  host.innerHTML=selectedStampIds.filter(id=>STAMP_BY_ID[id]).map(id=>{
-    const s=STAMP_BY_ID[id];
-    return `<img src="${s.image}" alt="${esc(s.name)}" title="${esc(s.name)}">`;
-  }).join("");
-  ph.textContent=selectedStampIds.length?"変更する":"🍪 スタンプを選ぶ";
-}
-function stampCategories(){
-  return ["すべて",...new Set(STAMP_MASTER.map(s=>s.category))];
-}
-function renderStampPicker(){
-  const tabs=document.getElementById("stampCategoryTabs");
-  const grid=document.getElementById("stampGrid");
-  const count=document.getElementById("stampCount");
-  if(!tabs||!grid) return;
-  tabs.innerHTML=stampCategories().map(cat=>`<button type="button" class="stamp-category-tab ${cat===activeStampCategory?"active":""}" data-stamp-cat="${esc(cat)}">${esc(cat)}</button>`).join("");
-  tabs.querySelectorAll("[data-stamp-cat]").forEach(b=>b.onclick=()=>{activeStampCategory=b.dataset.stampCat;renderStampPicker();});
-  const list=activeStampCategory==="すべて"?STAMP_MASTER:STAMP_MASTER.filter(s=>s.category===activeStampCategory);
-  grid.innerHTML=list.map(s=>`<button type="button" class="stamp-option ${selectedStampIds.includes(s.id)?"selected":""}" data-stamp-id="${s.id}" aria-label="${esc(s.name)}"><img src="${s.image}" alt=""><span>${esc(s.name)}</span></button>`).join("");
-  grid.querySelectorAll("[data-stamp-id]").forEach(b=>b.onclick=()=>{
-    const id=b.dataset.stampId;
-    if(selectedStampIds.includes(id)) selectedStampIds=selectedStampIds.filter(x=>x!==id);
-    else if(selectedStampIds.length<MAX_STAMPS) selectedStampIds=[...selectedStampIds,id];
-    renderStampPicker();
-  });
-  count.textContent=`${selectedStampIds.length} / ${MAX_STAMPS}`;
-}
-document.getElementById("openStampPickerBtn").onclick=()=>{
-  activeStampCategory="すべて";
-  renderStampPicker();
-  document.getElementById("stampDialog").showModal();
-};
-document.getElementById("clearStampsBtn").onclick=()=>{selectedStampIds=[];renderStampPicker();};
-document.getElementById("doneStampsBtn").onclick=()=>{
-  document.getElementById("stampDialog").close();
-  renderSelectedStampPreview();
-};
-
-function updateSegments(){
-  document.querySelectorAll("#dinnerSegments button").forEach(b=>b.classList.toggle("active",b.dataset.value===dinnerChoice));
-  document.querySelectorAll("#lunchSegments button").forEach(b=>b.classList.toggle("active",b.dataset.value===lunchChoice));
-}
-document.querySelectorAll("#dinnerSegments button").forEach(b=>b.onclick=()=>{dinnerChoice=b.dataset.value;updateSegments();});
-document.querySelectorAll("#lunchSegments button").forEach(b=>b.onclick=()=>{lunchChoice=b.dataset.value;updateSegments();});
-document.getElementById("eventMember").addEventListener("change",e=>loadLifeChoices(e.target.value));
-document.getElementById("lifeExpandBtn").onclick=()=>{
-  lifeExpanded=!lifeExpanded;
-  document.getElementById("lifeBlock").classList.toggle("hidden",!lifeExpanded);
-  document.getElementById("lifeExpandBtn").classList.toggle("active",lifeExpanded);
-  document.getElementById("lifeExpandBtn").textContent=lifeExpanded?"− 食事・生活情報を閉じる":"＋ 食事・生活情報を追加";
-};
-
 document.getElementById("saveEventBtn").onclick=()=>{
   const memberId=document.getElementById("eventMember").value;
   const category=document.getElementById("eventCategory").value;
@@ -730,20 +739,6 @@ document.getElementById("saveEventBtn").onclick=()=>{
     }
   }else{
     state.events.push({id:crypto.randomUUID(), ...payload});
-  }
-
-  if(lifeExpanded){
-    state.life[selectedDate] ??= {};
-    state.life[selectedDate][memberId]={dinner:dinnerChoice,lunch:lunchChoice};
-  }
-
-  if(category==="外泊" || category==="飲み会"){
-    const m=memberById(memberId);
-    if(m?.dinner){
-      state.life[selectedDate] ??= {};
-      state.life[selectedDate][memberId] ??= {dinner:"unknown",lunch:"unknown"};
-      state.life[selectedDate][memberId].dinner="no";
-    }
   }
 
   editingEventId=null;
@@ -968,9 +963,26 @@ document.getElementById("timelineTodayBtn").onclick=()=>{timelineDate=dateKey(ne
 document.getElementById("timelinePrevBtn").onclick=()=>shiftTimelineDay(-1);
 document.getElementById("timelineNextBtn").onclick=()=>shiftTimelineDay(1);
 
+document.getElementById("prevMealWeek").onclick=()=>{
+  const d=parseKey(mealWeekDate); d.setDate(d.getDate()-7); mealWeekDate=dateKey(d); renderWeeklyMeals();
+};
+document.getElementById("nextMealWeek").onclick=()=>{
+  const d=parseKey(mealWeekDate); d.setDate(d.getDate()+7); mealWeekDate=dateKey(d); renderWeeklyMeals();
+};
+document.getElementById("saveMealsBtn").onclick=saveMealEditor;
+document.getElementById("clearMealsBtn").onclick=()=>{
+  document.querySelectorAll("#mealDialog .meal-choice").forEach(group=>{
+    group.dataset.current="unknown";
+    group.querySelectorAll("[data-meal-value]").forEach(btn=>{
+      btn.classList.toggle("active",btn.dataset.mealValue==="unknown");
+      btn.classList.remove("yes","no");
+    });
+  });
+};
+
 document.getElementById("prevMonth").onclick=()=>{cursor=addMonths(cursor,-1);renderCalendar();};
 document.getElementById("nextMonth").onclick=()=>{cursor=addMonths(cursor,1);renderCalendar();};
-document.getElementById("todayBtn").onclick=()=>{cursor=startOfMonth(new Date());renderCalendar();};
+document.getElementById("todayBtn").onclick=()=>{cursor=startOfMonth(new Date());mealWeekDate=dateKey(new Date());renderCalendar();renderWeeklyMeals();};
 document.getElementById("quickAdd").onclick=()=>openDay(dateKey(new Date()));
 
 function openTab(tab){

@@ -1,4 +1,4 @@
-const CACHE = "with-fam-v0.3.8";
+const CACHE = "with-fam-v0.4.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -26,6 +26,7 @@ const ASSETS = [
   "./assets/stamps/cookie.png",
   "./assets/stamps/cupcake.png",
   "./assets/stamps/cutlery.png",
+  "./assets/stamps/dinner.png",
   "./assets/stamps/donut.png",
   "./assets/stamps/flowers.png",
   "./assets/stamps/gift.png",

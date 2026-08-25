@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=0.3.8" />
+<link rel="stylesheet" href="style.css?v=0.4.0" />
 </head>
 <body>
   <div class="sky-bg">
@@ -36,12 +36,12 @@
 
     <section class="summary-grid">
       <article class="cookie-card summary-card">
-        <div class="summary-title">🍚 TONIGHT</div>
+        <div class="summary-title"><img class="meal-title-icon" src="assets/stamps/dinner.png" alt=""> TONIGHT</div>
         <div class="summary-value" id="dinnerCount">—</div>
         <div class="summary-sub" id="dinnerDetail">夕飯の人数</div>
       </article>
       <article class="cookie-card summary-card">
-        <div class="summary-title">🍱 TOMORROW</div>
+        <div class="summary-title"><img class="meal-title-icon" src="assets/stamps/bento.png" alt=""> TOMORROW</div>
         <div class="summary-value" id="lunchCount">—</div>
         <div class="summary-sub" id="lunchDetail">お弁当の数</div>
       </article>
@@ -56,6 +56,18 @@
         </div>
         <button class="icon-btn" id="nextMonth" aria-label="次の月">›</button>
       </div>
+
+      <section class="weekly-meals" aria-label="週間の食事予定">
+        <div class="weekly-meals-head">
+          <button type="button" class="meal-week-nav" id="prevMealWeek" aria-label="前の週">‹</button>
+          <div>
+            <div class="eyebrow">WEEKLY MEALS</div>
+            <div class="weekly-meals-range" id="weeklyMealsRange"></div>
+          </div>
+          <button type="button" class="meal-week-nav" id="nextMealWeek" aria-label="次の週">›</button>
+        </div>
+        <div class="weekly-meals-grid" id="weeklyMealsGrid"></div>
+      </section>
 
       <div class="weekdays">
         <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
@@ -240,27 +252,6 @@
         </div>
       </div>
 
-      <button type="button" class="life-expand-btn" id="lifeExpandBtn">＋ 食事・生活情報を追加</button>
-      <div class="life-block hidden" id="lifeBlock">
-        <div class="life-title">生活</div>
-        <div class="toggle-row">
-          <span>🍚 夕飯</span>
-          <div class="segmented" id="dinnerSegments">
-            <button type="button" data-value="yes">いる</button>
-            <button type="button" data-value="no">いらない</button>
-            <button type="button" data-value="unknown" class="active">未回答</button>
-          </div>
-        </div>
-        <div class="toggle-row">
-          <span>🍱 お弁当</span>
-          <div class="segmented" id="lunchSegments">
-            <button type="button" data-value="yes">いる</button>
-            <button type="button" data-value="no">いらない</button>
-            <button type="button" data-value="unknown" class="active">未回答</button>
-          </div>
-        </div>
-      </div>
-
       <div class="sheet-actions">
         <button type="button" class="ghost-button" id="bulkBtn">まとめ入力</button>
         <button type="button" class="cookie-button" id="saveEventBtn">保存</button>
@@ -341,6 +332,35 @@
 
       <div class="sheet-actions">
         <button type="button" class="cookie-button" id="saveBulkBtn">選択日に一括登録</button>
+      </div>
+    </form>
+  </dialog>
+
+
+  <dialog id="mealDialog" class="sheet meal-sheet">
+    <form method="dialog" class="sheet-inner">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">WEEKLY MEALS</div>
+          <h2 id="mealDialogTitle">食事予定</h2>
+        </div>
+        <button class="icon-btn" value="cancel">×</button>
+      </div>
+
+      <div class="meal-editor-section">
+        <div class="meal-editor-title"><img src="assets/stamps/dinner.png" alt="">夕飯</div>
+        <div class="meal-member-list" id="dinnerMemberList"></div>
+      </div>
+
+      <div class="meal-editor-section">
+        <div class="meal-editor-title"><img src="assets/stamps/bento.png" alt="">お弁当</div>
+        <div class="meal-member-list" id="lunchMemberList"></div>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="ghost-button" id="clearMealsBtn">未回答に戻す</button>
+        <button type="button" class="cookie-button" id="saveMealsBtn">保存</button>
       </div>
     </form>
   </dialog>
@@ -431,6 +451,6 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=0.3.8"></script>
+  <script src="app.js?v=0.4.0"></script>
 </body>
 </html>

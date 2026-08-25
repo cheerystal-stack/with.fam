@@ -1,0 +1,4 @@
+with.fam v0.4.0 WEEKLY MEALS
+STAMP_MASTER unchanged: YES
+STAMP_MASTER SHA256: 7b71da766ffaf3ed89c11a82a16b6b85363ce8d53fb3363c66eb5e1c823e4c4c
+Meal icons: assets/stamps/dinner.png, assets/stamps/bento.png

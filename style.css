@@ -557,3 +557,65 @@ body{
     object-fit:contain;
   }
 }
+
+
+/* =========================================================
+   with.fam v0.4.0 — WEEKLY MEALS
+   ========================================================= */
+.meal-title-icon{
+  width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:4px
+}
+.weekly-meals{
+  margin:10px 0 12px;padding:10px 8px 9px;border:2px solid #c7e5f4;border-radius:18px;
+  background:rgba(255,255,255,.72);box-shadow:inset 0 2px 0 rgba(255,255,255,.9)
+}
+.weekly-meals-head{
+  display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:6px;margin-bottom:8px;text-align:center
+}
+.weekly-meals-head .eyebrow{font-size:.62rem}
+.weekly-meals-range{font-size:.68rem;font-weight:900;color:#688aa0;margin-top:1px}
+.meal-week-nav{
+  width:34px;height:34px;border:2px solid #a9d6eb;border-radius:12px;background:#fff;color:#57809a;
+  font-size:1.25rem;font-weight:900;box-shadow:0 3px 0 #9ccbe2
+}
+.weekly-meals-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.weekly-meal-day{
+  min-width:0;border:1.5px solid #d0e7f2;border-radius:12px;background:#fffdf8;padding:5px 2px 6px;color:#517b92;
+  display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 2px 0 #d7eaf3
+}
+.weekly-meal-day.today{background:#fff6c9;border-color:#efca69}
+.weekly-meal-dow{font-size:.62rem;font-weight:900}
+.weekly-meal-date{font-size:.55rem;font-weight:800;color:#7a97a7}
+.weekly-meal-count{display:flex;align-items:center;justify-content:center;gap:1px;min-height:24px;font-size:.66rem;font-weight:900;white-space:nowrap}
+.weekly-meal-count img{width:21px;height:21px;object-fit:contain}
+.weekly-meal-count small{font-size:.45rem;color:#c98292;margin-left:1px}
+
+.meal-editor-section{margin-top:12px;border:2px solid #d3e8f2;border-radius:18px;background:rgba(255,255,255,.78);overflow:hidden}
+.meal-editor-title{
+  display:flex;align-items:center;gap:8px;padding:9px 12px;background:#fde6ef;color:#52798f;font-family:"Yomogi",sans-serif;font-weight:900
+}
+.meal-editor-title img{width:34px;height:34px;object-fit:contain}
+.meal-member-list{padding:5px 10px}
+.meal-member-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed #d9e8ef}
+.meal-member-row:last-child{border-bottom:0}
+.meal-choice{display:flex;gap:5px;align-items:center}
+.meal-choice button{
+  border:1.5px solid #bdd7e4;background:#fff;border-radius:999px;padding:6px 10px;color:#597e91;font-weight:900;font-size:.72rem
+}
+.meal-choice button.active.yes{background:#ffd8e6;border-color:#ef9fbb;color:#855267}
+.meal-choice button.active.no{background:#dff2ff;border-color:#9fcfea;color:#4f7890}
+.meal-choice .meal-unknown{width:31px;padding-left:0;padding-right:0}
+.meal-choice .meal-unknown.active{background:#f1f3f4;border-color:#c8d2d8;color:#758691}
+
+@media(max-width:500px){
+  .weekly-meals{margin:7px 0 9px;padding:8px 4px 7px;border-radius:15px}
+  .weekly-meals-head{margin-bottom:6px}
+  .weekly-meals-grid{gap:2px}
+  .weekly-meal-day{border-radius:9px;padding:4px 0 5px}
+  .weekly-meal-dow{font-size:.54rem}
+  .weekly-meal-date{font-size:.45rem}
+  .weekly-meal-count{font-size:.57rem;gap:0;min-height:20px}
+  .weekly-meal-count img{width:18px;height:18px}
+  .weekly-meal-count small{font-size:.4rem}
+  .meal-title-icon{width:25px;height:25px}
+}

@@ -524,24 +524,35 @@ body{
   padding:3px 0 10px;
 }
 
-/* v0.3.9 — portrait phone calendar: restore readable stamp size. */
+/* portrait phone calendar */
 @media (max-width:500px) and (orientation:portrait){
+
+  .calendar-grid{
+    column-gap:1px;
+    row-gap:3px;
+  }
+
+  .weekdays{
+    column-gap:1px;
+  }
+
   .day-cell .day-stamps{
-    left:3px;
-    right:3px;
+    left:1px;
+    right:1px;
     bottom:5px;
     width:auto;
-    height:28px;
+    height:20px;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:2px;
+    gap:0;
     overflow:visible;
   }
+
   .day-cell .day-stamp-img{
-    width:24px;
-    height:24px;
-    flex:0 0 24px;
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
     min-width:0;
     object-fit:contain;
   }
